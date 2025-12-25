@@ -1,485 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MealMate - AI Meal Planning</title>
-  <meta name="description" content="AI-powered meal planning. Plan meals, generate grocery lists, track nutrition.">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3073911588578821" crossorigin="anonymous"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Outfit', 'sans-serif'] } } }
-    }
-  </script>
-  <style>
-    * { font-family: 'Outfit', sans-serif; }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 40px rgba(16,185,129,0.8); } }
-    .animate-float { animation: float 3s ease-in-out infinite; }
-    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-    .glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); }
-    .dark .glass { background: rgba(15,23,42,0.9); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate - AI-Powered Meal Planning</title>
+    <meta name="description" content="Scan your fridge, get meal suggestions, track nutrition for the whole family.">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--primary:#2D6A4F;--primary-light:#40916C;--primary-dark:#1B4332;--accent:#E76F51;--accent-light:#F4A261;--bg:#FEFDF8;--bg-secondary:#F5F3EE;--text:#1A1A1A;--text-muted:#6B7280;--border:#E5E2DB;--white:#FFFFFF;--success:#10B981;--error:#EF4444;--warning:#F59E0B;--shadow:0 4px 6px -1px rgba(0,0,0,0.1);--radius:12px;--radius-lg:20px}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+        h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:600}
+        .auth-container{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+        @media(max-width:900px){.auth-container{grid-template-columns:1fr}.auth-hero{display:none}}
+        .auth-hero{background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-light));padding:3rem;display:flex;flex-direction:column;justify-content:center;color:white}
+        .auth-hero h1{font-size:3rem;margin-bottom:1.5rem}.auth-hero p{font-size:1.25rem;opacity:0.9;max-width:400px}
+        .hero-features{margin-top:2rem;display:flex;flex-direction:column;gap:0.75rem}
+        .hero-feature{display:flex;align-items:center;gap:0.5rem;opacity:0.9}
+        .auth-form-section{display:flex;align-items:center;justify-content:center;padding:2rem}
+        .auth-form-wrapper{width:100%;max-width:400px}
+        .logo{display:flex;align-items:center;gap:0.5rem;margin-bottom:2rem}
+        .logo-icon{width:48px;height:48px;background:var(--primary);border-radius:var(--radius);display:flex;align-items:center;justify-content:center}
+        .logo-icon svg{width:28px;height:28px;fill:white}
+        .logo-text{font-family:'Fraunces',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark)}
+        .auth-form h2{font-size:1.75rem;margin-bottom:0.5rem}.auth-form .subtitle{color:var(--text-muted);margin-bottom:2rem}
+        .form-group{margin-bottom:1.25rem}.form-group label{display:block;font-weight:500;margin-bottom:0.5rem;font-size:0.875rem}
+        .form-group input{width:100%;padding:0.875rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:1rem;font-family:inherit}
+        .form-group input:focus{outline:none;border-color:var(--primary)}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.875rem 1.5rem;border:none;border-radius:var(--radius);font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:inherit}
+        .btn-primary{background:var(--primary);color:white;width:100%}.btn-primary:hover{background:var(--primary-dark)}
+        .btn-secondary{background:var(--bg-secondary);color:var(--text)}.btn-accent{background:var(--accent);color:white}
+        .btn-sm{padding:0.5rem 1rem;font-size:0.875rem}
+        .divider{display:flex;align-items:center;margin:1.5rem 0;color:var(--text-muted);font-size:0.875rem}
+        .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}.divider span{padding:0 1rem}
+        .social-login{display:flex;gap:0.75rem}
+        .social-btn{flex:1;padding:0.75rem;border:2px solid var(--border);border-radius:var(--radius);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .social-btn:hover{background:var(--bg-secondary)}.social-btn svg{width:24px;height:24px}
+        .auth-footer{text-align:center;margin-top:2rem;color:var(--text-muted)}.auth-footer a{color:var(--primary);font-weight:600;text-decoration:none}
+        .app-container{display:none;min-height:100vh}.app-container.active{display:block}.auth-container.hidden{display:none}
+        .top-nav{background:var(--white);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+        .nav-left{display:flex;align-items:center;gap:2rem}.nav-logo{display:flex;align-items:center;gap:0.5rem;text-decoration:none}
+        .nav-logo .logo-icon{width:36px;height:36px}.nav-logo .logo-icon svg{width:20px;height:20px}.nav-logo .logo-text{font-size:1.25rem}
+        .nav-links{display:flex;gap:0.25rem}
+        .nav-link{padding:0.5rem 0.75rem;border-radius:8px;color:var(--text-muted);text-decoration:none;font-weight:500;display:flex;align-items:center;gap:0.4rem;font-size:0.9rem}
+        .nav-link:hover,.nav-link.active{color:var(--primary);background:rgba(45,106,79,0.08)}.nav-link svg{width:18px;height:18px}
+        .nav-right{display:flex;align-items:center;gap:1rem}
+        .user-menu{display:flex;align-items:center;gap:0.75rem;padding:0.5rem;border-radius:var(--radius);cursor:pointer}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:0.875rem}
+        .user-name{font-weight:600;font-size:0.875rem}.user-plan{font-size:0.75rem;color:var(--text-muted)}
+        .main-content{padding:2rem;max-width:1400px;margin:0 auto}.page-header{margin-bottom:2rem}.page-header h1{font-size:2rem;margin-bottom:0.5rem}.page-header p{color:var(--text-muted)}
+        .card{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
+        .card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .card-header h3{font-size:1.125rem}.card-body{padding:1.5rem}
+        .page-section{display:none}.page-section.active{display:block}
+        .scan-section{background:linear-gradient(135deg,var(--primary-dark),var(--primary));border-radius:var(--radius-lg);padding:2rem;color:white;margin-bottom:2rem}
+        .scan-section h3{font-size:1.5rem;margin-bottom:0.5rem}.scan-section p{opacity:0.9;margin-bottom:1.5rem}
+        .scan-buttons{display:flex;gap:1rem;flex-wrap:wrap}
+        .scan-btn{background:white;color:var(--primary-dark);padding:1rem 1.5rem;border:none;border-radius:var(--radius);font-size:1rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.5rem;font-family:inherit}
+        .scan-btn:hover{transform:translateY(-2px)}.scan-btn.secondary{background:rgba(255,255,255,0.2);color:white}
+        .family-section{margin-bottom:2rem}
+        .family-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+        .family-card{background:var(--white);border:2px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;text-align:center;cursor:pointer;transition:all 0.2s}
+        .family-card:hover{border-color:var(--primary)}.family-card.active{border-color:var(--primary);background:rgba(45,106,79,0.05)}
+        .family-avatar{width:64px;height:64px;border-radius:50%;margin:0 auto 0.75rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:white}
+        .family-avatar.dad{background:linear-gradient(135deg,#3B82F6,#1D4ED8)}.family-avatar.mom{background:linear-gradient(135deg,#EC4899,#BE185D)}
+        .family-avatar.child1{background:linear-gradient(135deg,#10B981,#047857)}.family-avatar.child2{background:linear-gradient(135deg,#F59E0B,#D97706)}
+        .family-avatar.add{background:var(--bg-secondary);color:var(--text-muted);border:2px dashed var(--border)}
+        .family-name{font-weight:600;margin-bottom:0.25rem}.family-goal{font-size:0.75rem;color:var(--text-muted)}
+        .nutrition-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+        @media(max-width:900px){.nutrition-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:500px){.nutrition-grid{grid-template-columns:1fr}}
+        .nutrition-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center}
+        .nutrition-card.calories{border-left:4px solid var(--accent)}.nutrition-card.carbs{border-left:4px solid var(--warning)}
+        .nutrition-card.protein{border-left:4px solid var(--primary)}.nutrition-card.fat{border-left:4px solid #8B5CF6}
+        .nutrition-label{font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.25rem}
+        .nutrition-value{font-size:1.75rem;font-weight:700;margin-bottom:0.25rem}.nutrition-goal{font-size:0.875rem;color:var(--text-muted)}
+        .nutrition-bar{height:6px;background:var(--border);border-radius:3px;margin-top:0.75rem;overflow:hidden}
+        .nutrition-bar-fill{height:100%;border-radius:3px}
+        .nutrition-bar-fill.calories{background:var(--accent)}.nutrition-bar-fill.carbs{background:var(--warning)}
+        .nutrition-bar-fill.protein{background:var(--primary)}.nutrition-bar-fill.fat{background:#8B5CF6}
+        .meal-log-item{display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:0.75rem}
+        .meal-log-time{min-width:70px;font-weight:600;color:var(--primary);font-size:0.875rem}
+        .meal-log-name{font-weight:600;margin-bottom:0.125rem}
+        .meal-log-macros{font-size:0.8rem;color:var(--text-muted);display:flex;gap:0.75rem;flex-wrap:wrap}
+        .macro-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:0.25rem}
+        .macro-dot.cal{background:var(--accent)}.macro-dot.carb{background:var(--warning)}.macro-dot.pro{background:var(--primary)}.macro-dot.fat{background:#8B5CF6}
+        .camera-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center}
+        .camera-modal.active{display:flex}
+        .camera-header{position:absolute;top:0;left:0;right:0;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;color:white;z-index:10}
+        .camera-title{font-weight:600;font-size:1.125rem}
+        .camera-close{width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .camera-view{width:100%;max-width:600px;aspect-ratio:4/3;background:#000;border-radius:var(--radius-lg);overflow:hidden;position:relative}
+        .camera-view video,.camera-view img{width:100%;height:100%;object-fit:cover}
+        .camera-hint{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:0.5rem 1rem;border-radius:20px;font-size:0.875rem}
+        .camera-controls{margin-top:2rem;display:flex;gap:1rem;align-items:center}
+        .capture-btn{width:72px;height:72px;border-radius:50%;background:white;border:4px solid var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .capture-btn:hover{transform:scale(1.05)}.capture-btn svg{width:32px;height:32px;color:var(--primary)}
+        .gallery-btn,.switch-btn{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .analyzing-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;border-radius:var(--radius-lg)}
+        .analyzing-overlay p{margin-top:1rem}
+        .spinner{width:24px;height:24px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .detected-items{display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem}
+        .detected-item{display:flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:20px;font-size:0.9rem}
+        .detected-item .remove{width:18px;height:18px;border-radius:50%;background:var(--border);border:none;cursor:pointer;font-size:12px;color:var(--text-muted)}
+        .detected-item .remove:hover{background:var(--error);color:white}
+        .meal-suggestion{display:flex;gap:1rem;padding:1rem;background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:0.75rem;cursor:pointer;transition:all 0.2s}
+        .meal-suggestion:hover{background:var(--border);transform:translateX(4px)}
+        .meal-suggestion-icon{width:60px;height:60px;border-radius:var(--radius);background:linear-gradient(135deg,var(--primary-light),var(--accent-light));display:flex;align-items:center;justify-content:center;font-size:1.75rem}
+        .meal-suggestion-name{font-weight:600;margin-bottom:0.25rem}
+        .meal-suggestion-meta{font-size:0.875rem;color:var(--text-muted);display:flex;gap:1rem}
+        .meal-suggestion-match{background:var(--success);color:white;padding:0.25rem 0.75rem;border-radius:12px;font-size:0.75rem;font-weight:600;align-self:flex-start}
+        .scan-results{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--border);margin-top:1.5rem;overflow:hidden}
+        .scan-results-header{padding:1rem 1.5rem;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .scan-results-body{padding:1.5rem}
+        .pantry-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem}
+        .pantry-item{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center;position:relative}
+        .pantry-item-icon{font-size:2rem;margin-bottom:0.5rem}.pantry-item-name{font-weight:500;font-size:0.9rem;margin-bottom:0.25rem}
+        .pantry-item-qty{font-size:0.75rem;color:var(--text-muted)}
+        .pantry-item-status{position:absolute;top:0.5rem;right:0.5rem;width:10px;height:10px;border-radius:50%}
+        .pantry-item-status.good{background:var(--success)}.pantry-item-status.low{background:var(--warning)}.pantry-item-status.out{background:var(--error)}
+        .grocery-list{display:flex;flex-direction:column;gap:0.5rem}
+        .grocery-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:var(--bg-secondary);border-radius:8px}
+        .grocery-checkbox{width:20px;height:20px;border:2px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .grocery-checkbox.checked{background:var(--primary);border-color:var(--primary)}
+        .grocery-checkbox svg{width:14px;height:14px;opacity:0;color:white}.grocery-checkbox.checked svg{opacity:1}
+        .grocery-item.checked .grocery-name{text-decoration:line-through;color:var(--text-muted)}
+        .grocery-name{flex:1}.grocery-qty{font-size:0.875rem;color:var(--text-muted);background:var(--white);padding:0.25rem 0.5rem;border-radius:4px}
+        .instacart-card{background:linear-gradient(135deg,#43B02A,#2D8C1F);color:white}
+        .instacart-card .card-body{text-align:center}.instacart-card h4{margin-bottom:0.5rem}.instacart-card p{opacity:0.9;font-size:0.875rem;margin-bottom:1rem}
+        .instacart-btn{background:white;color:#43B02A;width:100%}
+        .toast-container{position:fixed;bottom:2rem;right:2rem;z-index:1001;display:flex;flex-direction:column;gap:0.75rem}
+        .toast{background:var(--text);color:white;padding:1rem 1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);animation:slideIn 0.3s}
+        @keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+        .toast.success{background:var(--success)}.toast.error{background:var(--error)}
+        .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);padding:0.5rem;z-index:100}
+        @media(max-width:768px){.mobile-nav{display:flex;justify-content:space-around}.nav-links{display:none}.main-content{padding:1rem;padding-bottom:80px}}
+        .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.5rem;color:var(--text-muted);text-decoration:none;font-size:0.7rem}
+        .mobile-nav-item.active{color:var(--primary)}.mobile-nav-item svg{width:24px;height:24px}
+        .dashboard-grid{display:grid;grid-template-columns:1fr 350px;gap:2rem}@media(max-width:1100px){.dashboard-grid{grid-template-columns:1fr}}
+        .sidebar-widgets{display:flex;flex-direction:column;gap:1.5rem}
+        .add-item-input{display:flex;gap:0.5rem;margin-bottom:1.5rem}.add-item-input input{flex:1}
+    </style>
 </head>
-<body class="bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 min-h-screen">
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, createContext, useContext } = React;
-
-const SUPABASE_URL = 'https://svjixbhwtykvhmybycqt.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_9EFLAWNJW7EOBaz8KlY_UQ_S-cwwNOD';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const AppContext = createContext();
-const useApp = () => useContext(AppContext);
-
-function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [mealPlan, setMealPlan] = useState({});
-  const [groceryList, setGroceryList] = useState([]);
-  const [aiMessages, setAiMessages] = useState([]);
-  const [aiLoading, setAiLoading] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const signUp = async (email, password) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error };
-  };
-
-  const signIn = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
-  };
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const askAI = async (message) => {
-    setAiLoading(true);
-    const newMessages = [...aiMessages, { role: 'user', content: message }];
-    setAiMessages(newMessages);
-    
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages.map(m => ({ role: m.role, content: m.content })) })
-      });
-      const data = await res.json();
-      if (data.content && data.content[0]) {
-        setAiMessages([...newMessages, { role: 'assistant', content: data.content[0].text }]);
-      }
-    } catch (err) {
-      setAiMessages([...newMessages, { role: 'assistant', content: 'Sorry, I had trouble connecting. Please try again.' }]);
-    }
-    setAiLoading(false);
-  };
-
-  const value = {
-    user, loading, darkMode, setDarkMode,
-    mealPlan, setMealPlan, groceryList, setGroceryList,
-    aiMessages, aiLoading, askAI,
-    signUp, signIn, signOut
-  };
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
-
-function Card({ children, className = '' }) {
-  return (
-    <div className={`glass rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-function LandingPage() {
-  const { signIn, signUp } = useApp();
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    
-    const { error } = isLogin 
-      ? await signIn(email, password)
-      : await signUp(email, password);
-    
-    if (error) {
-      setError(error.message);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <header className="glass sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center animate-float">
-              <span className="text-xl">🍽️</span>
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">MealMate</span>
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Card>
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-                <span className="text-4xl">🍽️</span>
-              </div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Welcome to MealMate</h1>
-              <p className="text-slate-600 dark:text-slate-400">AI-powered meal planning made simple</p>
-            </div>
-
-            <div className="flex mb-6 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
-              <button
-                onClick={() => setIsLogin(true)}
-                className={`flex-1 py-2 rounded-lg font-medium transition-all ${isLogin ? 'bg-white dark:bg-slate-700 shadow text-emerald-600' : 'text-slate-600 dark:text-slate-400'}`}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => setIsLogin(false)}
-                className={`flex-1 py-2 rounded-lg font-medium transition-all ${!isLogin ? 'bg-white dark:bg-slate-700 shadow text-emerald-600' : 'text-slate-600 dark:text-slate-400'}`}
-              >
-                Sign Up
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              {error && (
-                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm">
-                  {error}
+<body>
+    <div class="auth-container" id="authContainer">
+        <div class="auth-hero">
+            <div>
+                <h1>Scan. Plan.<br>Eat smarter.</h1>
+                <p>Snap a photo of your fridge, let AI suggest meals, and track nutrition for your whole family.</p>
+                <div class="hero-features">
+                    <div class="hero-feature">📸 Scan fridge & pantry with camera</div>
+                    <div class="hero-feature">🤖 AI suggests meals from ingredients</div>
+                    <div class="hero-feature">👨‍👩‍👧‍👦 Track calories/carbs per family member</div>
+                    <div class="hero-feature">🛒 One-tap Instacart ordering</div>
                 </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50"
-              >
-                {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button 
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-emerald-600 hover:text-emerald-700 font-medium"
-              >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
             </div>
-          </Card>
         </div>
-      </main>
-    </div>
-  );
-}
-
-function MainApp() {
-  const { user, signOut, darkMode, setDarkMode, mealPlan, setMealPlan, groceryList, setGroceryList, aiMessages, aiLoading, askAI } = useApp();
-  const [tab, setTab] = useState('plan');
-  const [aiInput, setAiInput] = useState('');
-
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const meals = ['Breakfast', 'Lunch', 'Dinner'];
-
-  const handleAddMeal = (day, meal) => {
-    const mealName = prompt(`What's for ${meal.toLowerCase()} on ${day}?`);
-    if (mealName) {
-      setMealPlan(prev => ({
-        ...prev,
-        [`${day}-${meal}`]: mealName
-      }));
-    }
-  };
-
-  const handleAISubmit = (e) => {
-    e.preventDefault();
-    if (aiInput.trim() && !aiLoading) {
-      askAI(aiInput);
-      setAiInput('');
-    }
-  };
-
-  const handleSend = (text) => {
-    if (!aiLoading) {
-      askAI(text);
-    }
-  };
-
-  const addToGrocery = (item) => {
-    if (item && !groceryList.find(i => i.name === item)) {
-      setGroceryList([...groceryList, { name: item, checked: false }]);
-    }
-  };
-
-  const toggleGroceryItem = (index) => {
-    setGroceryList(groceryList.map((item, i) => 
-      i === index ? { ...item, checked: !item.checked } : item
-    ));
-  };
-
-  return (
-    <div className="min-h-screen pb-20">
-      <header className="glass sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-              <span className="text-lg">🍽️</span>
-            </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">MealMate</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-            <button
-              onClick={signOut}
-              className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-lg mx-auto px-4 py-6">
-        {tab === 'plan' && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Weekly Meal Plan</h2>
-            {days.map(day => (
-              <Card key={day} className="p-4">
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{day}</h3>
-                <div className="space-y-2">
-                  {meals.map(meal => (
-                    <div key={meal} className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">{meal}</span>
-                      {mealPlan[`${day}-${meal}`] ? (
-                        <span className="text-sm font-medium text-emerald-600">{mealPlan[`${day}-${meal}`]}</span>
-                      ) : (
-                        <button
-                          onClick={() => handleAddMeal(day, meal)}
-                          className="text-xs px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 hover:bg-emerald-200 transition-colors"
-                        >
-                          + Add
-                        </button>
-                      )}
+        <div class="auth-form-section">
+            <div class="auth-form-wrapper">
+                <div class="logo"><div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M8.1 13.34l2.83-2.83L3.91 3.5a4.008 4.008 0 000 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/></svg></div><span class="logo-text">MealMate</span></div>
+                <div class="auth-form" id="loginForm">
+                    <h2>Welcome back</h2>
+                    <p class="subtitle">Sign in to continue</p>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com" required></div>
+                        <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" required></div>
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </form>
+                    <div class="divider"><span>or</span></div>
+                    <div class="social-login">
+                        <button class="social-btn" onclick="socialLogin('google')"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></button>
+                        <button class="social-btn" onclick="socialLogin('apple')"><svg viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg></button>
                     </div>
-                  ))}
+                    <p class="auth-footer">Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {tab === 'ai' && (
-          <Card className="h-[calc(100vh-200px)] flex flex-col">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">AI Chef</h2>
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-              {aiMessages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mb-4 animate-float">
-                    <span className="text-2xl">👨‍🍳</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">What should we cook?</h3>
-                  <p className="text-slate-500 mb-6 max-w-sm">Ask me for meal ideas, cooking tips, or recipe suggestions!</p>
-                  <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-                    {[{i:'🥗',t:'Quick dinner ideas'},{i:'💪',t:'High-protein meals'},{i:'🌱',t:'Vegetarian recipes'},{i:'⏱️',t:'20-minute meals'}].map(p => (
-                      <button key={p.t} onClick={() => handleSend(p.t)}
-                        className="flex items-center gap-2 p-3 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-left">
-                        <span className="text-xl">{p.i}</span>
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{p.t}</span>
-                      </button>
-                    ))}
-                  </div>
+                <div class="auth-form" id="signupForm" style="display:none">
+                    <h2>Create account</h2>
+                    <p class="subtitle">Start smarter meal planning</p>
+                    <form onsubmit="handleSignup(event)">
+                        <div class="form-group"><label>Name</label><input type="text" id="signupName" placeholder="John Doe" required></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com" required></div>
+                        <div class="form-group"><label>Password</label><input type="password" id="signupPassword" placeholder="••••••••" required minlength="8"></div>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+                    <p class="auth-footer">Have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
                 </div>
-              ) : (
-                aiMessages.map((msg, i) => (
-                  <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                      {msg.role === 'user' ? '👤' : '👨‍🍳'}
-                    </div>
-                    <div className={`max-w-[80%] p-3 rounded-2xl ${msg.role === 'user' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'}`}>
-                      {msg.content}
-                    </div>
-                  </div>
-                ))
-              )}
-              {aiLoading && (
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">👨‍🍳</div>
-                  <div className="bg-slate-100 dark:bg-slate-700 p-3 rounded-2xl">
-                    <span className="animate-pulse">Thinking...</span>
-                  </div>
-                </div>
-              )}
             </div>
-            <form onSubmit={handleAISubmit} className="flex gap-2">
-              <input
-                type="text"
-                value={aiInput}
-                onChange={(e) => setAiInput(e.target.value)}
-                placeholder="Ask about recipes, meal ideas..."
-                className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
-              <button
-                type="submit"
-                disabled={aiLoading || !aiInput.trim()}
-                className="px-4 py-3 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors"
-              >
-                Send
-              </button>
-            </form>
-          </Card>
-        )}
-
-        {tab === 'grocery' && (
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Grocery List</h2>
-              <button
-                onClick={() => {
-                  const item = prompt('Add item:');
-                  if (item) addToGrocery(item);
-                }}
-                className="px-3 py-1 rounded-full bg-emerald-500 text-white text-sm hover:bg-emerald-600 transition-colors"
-              >
-                + Add Item
-              </button>
-            </div>
-            {groceryList.length === 0 ? (
-              <p className="text-center text-slate-500 py-8">Your grocery list is empty. Add items or let AI generate a list!</p>
-            ) : (
-              <ul className="space-y-2">
-                {groceryList.map((item, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={item.checked}
-                      onChange={() => toggleGroceryItem(index)}
-                      className="w-5 h-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500"
-                    />
-                    <span className={`flex-1 ${item.checked ? 'line-through opacity-50' : ''}`}>
-                      {item.name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        )}
-      </main>
-
-      <nav className="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 dark:border-slate-700 px-4 py-3">
-        <div className="max-w-lg mx-auto flex justify-around">
-          {[
-            { id: 'plan', icon: '📅', label: 'Plan' },
-            { id: 'ai', icon: '🤖', label: 'AI Chef' },
-            { id: 'grocery', icon: '🛒', label: 'Grocery' }
-          ].map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
-                tab === t.id
-                  ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              <span className="text-xl">{t.icon}</span>
-              <span className="text-xs font-medium">{t.label}</span>
-            </button>
-          ))}
         </div>
-      </nav>
     </div>
-  );
-}
-
-function App() {
-  const { loading, user } = useApp();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="text-4xl animate-pulse">🍽️</span>
-      </div>
-    );
-  }
-
-  return user ? <MainApp /> : <LandingPage />;
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <AppProvider><App /></AppProvider>
-);
-</script>
+    <div class="app-container" id="appContainer">
+        <nav class="top-nav">
+            <div class="nav-left">
+                <a href="#" class="nav-logo" onclick="showPage('dashboard')"><div class="logo-icon"><svg viewBox="0 0 24 24"><path fill="white" d="M8.1 13.34l2.83-2.83L3.91 3.5a4.008 4.008 0 000 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/></svg></div><span class="logo-text">MealMate</span></a>
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" onclick="showPage('dashboard')" data-page="dashboard">🏠 Home</a>
+                    <a href="#" class="nav-link" onclick="showPage('scan')" data-page="scan">📸 Scan</a>
+                    <a href="#" class="nav-link" onclick="showPage('family')" data-page="family">👨‍👩‍👧‍👦 Family</a>
+                    <a href="#" class="nav-link" onclick="showPage('pantry')" data-page="pantry">🗄️ Pantry</a>
+                    <a href="#" class="nav-link" onclick="showPage('grocery')" data-page="grocery">🛒 Grocery</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="user-menu"><div class="user-avatar" id="userAvatar">JD</div><div class="user-info"><span class="user-name" id="userName">John Doe</span><span class="user-plan">Family Plan</span></div></div>
+            </div>
+        </nav>
+        <div class="page-section active" id="dashboardPage">
+            <div class="main-content">
+                <div class="page-header"><h1>Good morning! 👋</h1><p>Your family's nutrition overview</p></div>
+                <div class="scan-section">
+                    <h3>📸 What's in your fridge?</h3>
+                    <p>Snap a photo and let AI identify ingredients & suggest meals</p>
+                    <div class="scan-buttons">
+                        <button class="scan-btn" onclick="openCamera('fridge')">📷 Scan Fridge</button>
+                        <button class="scan-btn secondary" onclick="openCamera('pantry')">🗄️ Scan Pantry</button>
+                    </div>
+                </div>
+                <div class="family-section">
+                    <h3 style="margin-bottom:1rem">👨‍👩‍👧‍👦 Family Members</h3>
+                    <div class="family-grid">
+                        <div class="family-card active" onclick="selectMember('dad')"><div class="family-avatar dad">D</div><div class="family-name">Dad</div><div class="family-goal">2,200 cal • 150g carbs</div></div>
+                        <div class="family-card" onclick="selectMember('mom')"><div class="family-avatar mom">M</div><div class="family-name">Mom</div><div class="family-goal">1,800 cal • 120g carbs</div></div>
+                        <div class="family-card" onclick="selectMember('emma')"><div class="family-avatar child1">E</div><div class="family-name">Emma</div><div class="family-goal">1,600 cal • 180g carbs</div></div>
+                        <div class="family-card" onclick="selectMember('jake')"><div class="family-avatar child2">J</div><div class="family-name">Jake</div><div class="family-goal">1,400 cal • 160g carbs</div></div>
+                        <div class="family-card" onclick="addMember()"><div class="family-avatar add">+</div><div class="family-name">Add Member</div><div class="family-goal">Set up profile</div></div>
+                    </div>
+                </div>
+                <h3 style="margin-bottom:1rem" id="memberTitle">📊 Dad's Nutrition Today</h3>
+                <div class="nutrition-grid">
+                    <div class="nutrition-card calories"><div class="nutrition-label">Calories</div><div class="nutrition-value" id="calVal">1,450</div><div class="nutrition-goal">of 2,200</div><div class="nutrition-bar"><div class="nutrition-bar-fill calories" id="calBar" style="width:66%"></div></div></div>
+                    <div class="nutrition-card carbs"><div class="nutrition-label">Carbs</div><div class="nutrition-value" id="carbVal">95g</div><div class="nutrition-goal">of 150g</div><div class="nutrition-bar"><div class="nutrition-bar-fill carbs" id="carbBar" style="width:63%"></div></div></div>
+                    <div class="nutrition-card protein"><div class="nutrition-label">Protein</div><div class="nutrition-value" id="proVal">78g</div><div class="nutrition-goal">of 120g</div><div class="nutrition-bar"><div class="nutrition-bar-fill protein" id="proBar" style="width:65%"></div></div></div>
+                    <div class="nutrition-card fat"><div class="nutrition-label">Fat</div><div class="nutrition-value" id="fatVal">52g</div><div class="nutrition-goal">of 75g</div><div class="nutrition-bar"><div class="nutrition-bar-fill fat" id="fatBar" style="width:69%"></div></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>🍽️ Today's Meals</h3><button class="btn btn-secondary btn-sm" onclick="logMeal()">+ Log Meal</button></div>
+                    <div class="card-body">
+                        <div class="meal-log-item"><div class="meal-log-time">8:00 AM</div><div><div class="meal-log-name">Greek Yogurt Parfait</div><div class="meal-log-macros"><span><span class="macro-dot cal"></span>320 cal</span><span><span class="macro-dot carb"></span>35g carbs</span><span><span class="macro-dot pro"></span>18g protein</span></div></div></div>
+                        <div class="meal-log-item"><div class="meal-log-time">12:30 PM</div><div><div class="meal-log-name">Grilled Chicken Salad</div><div class="meal-log-macros"><span><span class="macro-dot cal"></span>485 cal</span><span><span class="macro-dot carb"></span>25g carbs</span><span><span class="macro-dot pro"></span>42g protein</span></div></div></div>
+                        <div class="meal-log-item"><div class="meal-log-time">3:00 PM</div><div><div class="meal-log-name">Apple with Almond Butter</div><div class="meal-log-macros"><span><span class="macro-dot cal"></span>245 cal</span><span><span class="macro-dot carb"></span>28g carbs</span><span><span class="macro-dot pro"></span>6g protein</span></div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="scanPage">
+            <div class="main-content">
+                <div class="page-header"><h1>📸 Scan Your Kitchen</h1><p>Take photos to identify ingredients</p></div>
+                <div class="scan-section">
+                    <h3>Quick Scan</h3>
+                    <p>AI will identify ingredients and suggest meals</p>
+                    <div class="scan-buttons">
+                        <button class="scan-btn" onclick="openCamera('fridge')">🧊 Scan Fridge</button>
+                        <button class="scan-btn secondary" onclick="openCamera('pantry')">🗄️ Scan Pantry</button>
+                        <button class="scan-btn secondary" onclick="openCamera('cabinet')">🚪 Scan Cabinet</button>
+                    </div>
+                </div>
+                <div class="scan-results" id="scanResults" style="display:none">
+                    <div class="scan-results-header"><h4>✅ Detected Ingredients</h4></div>
+                    <div class="scan-results-body">
+                        <div class="detected-items" id="detectedItems"></div>
+                        <div class="add-item-input"><input type="text" id="addItemInput" placeholder="Add item..."><button class="btn btn-primary" style="width:auto" onclick="addItem()">Add</button></div>
+                        <h4 style="margin-bottom:1rem">🍳 Suggested Meals</h4>
+                        <div id="suggestedMeals"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="familyPage">
+            <div class="main-content">
+                <div class="page-header"><h1>👨‍👩‍👧‍👦 Family Nutrition</h1><p>Track nutrition for each member</p></div>
+                <div class="family-grid" style="margin-bottom:2rem">
+                    <div class="family-card active" onclick="selectMember('dad')"><div class="family-avatar dad">D</div><div class="family-name">Dad</div><div class="family-goal">2,200 cal • 150g carbs</div></div>
+                    <div class="family-card" onclick="selectMember('mom')"><div class="family-avatar mom">M</div><div class="family-name">Mom</div><div class="family-goal">1,800 cal • 120g carbs</div></div>
+                    <div class="family-card" onclick="selectMember('emma')"><div class="family-avatar child1">E</div><div class="family-name">Emma</div><div class="family-goal">1,600 cal • 180g carbs</div></div>
+                    <div class="family-card" onclick="selectMember('jake')"><div class="family-avatar child2">J</div><div class="family-name">Jake</div><div class="family-goal">1,400 cal • 160g carbs</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>📊 Family Overview</h3></div>
+                    <div class="card-body" style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+                            <thead><tr style="border-bottom:2px solid var(--border)"><th style="padding:0.75rem;text-align:left">Member</th><th style="padding:0.75rem;text-align:center">Calories</th><th style="padding:0.75rem;text-align:center">Carbs</th><th style="padding:0.75rem;text-align:center">Protein</th><th style="padding:0.75rem;text-align:center">Status</th></tr></thead>
+                            <tbody>
+                                <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.75rem"><strong>Dad</strong></td><td style="text-align:center">1,450/2,200</td><td style="text-align:center">95g/150g</td><td style="text-align:center">78g/120g</td><td style="text-align:center"><span style="background:var(--success);color:white;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem">On Track</span></td></tr>
+                                <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.75rem"><strong>Mom</strong></td><td style="text-align:center">1,320/1,800</td><td style="text-align:center">88g/120g</td><td style="text-align:center">65g/90g</td><td style="text-align:center"><span style="background:var(--success);color:white;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem">On Track</span></td></tr>
+                                <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.75rem"><strong>Emma</strong></td><td style="text-align:center">1,680/1,600</td><td style="text-align:center">195g/180g</td><td style="text-align:center">55g/70g</td><td style="text-align:center"><span style="background:var(--warning);color:white;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem">Over Carbs</span></td></tr>
+                                <tr><td style="padding:0.75rem"><strong>Jake</strong></td><td style="text-align:center">980/1,400</td><td style="text-align:center">110g/160g</td><td style="text-align:center">38g/60g</td><td style="text-align:center"><span style="background:var(--primary);color:white;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem">Needs More</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="pantryPage">
+            <div class="main-content">
+                <div class="page-header"><h1>🗄️ My Pantry</h1><p>Inventory from your scans</p></div>
+                <div class="scan-section" style="margin-bottom:2rem">
+                    <h3>Update Pantry</h3>
+                    <p>Scan to update inventory</p>
+                    <div class="scan-buttons"><button class="scan-btn" onclick="openCamera('fridge')">📷 Scan Now</button></div>
+                </div>
+                <h3 style="margin-bottom:1rem">🥬 Fresh Produce</h3>
+                <div class="pantry-grid" style="margin-bottom:2rem">
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🥬</div><div class="pantry-item-name">Mixed Greens</div><div class="pantry-item-qty">2 bags</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🥕</div><div class="pantry-item-name">Carrots</div><div class="pantry-item-qty">1 lb</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status low"></div><div class="pantry-item-icon">🍅</div><div class="pantry-item-name">Tomatoes</div><div class="pantry-item-qty">2 left</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status out"></div><div class="pantry-item-icon">🧅</div><div class="pantry-item-name">Onions</div><div class="pantry-item-qty">Out</div></div>
+                </div>
+                <h3 style="margin-bottom:1rem">🥩 Proteins</h3>
+                <div class="pantry-grid" style="margin-bottom:2rem">
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🍗</div><div class="pantry-item-name">Chicken</div><div class="pantry-item-qty">1.5 lbs</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🐟</div><div class="pantry-item-name">Salmon</div><div class="pantry-item-qty">2 fillets</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🥚</div><div class="pantry-item-name">Eggs</div><div class="pantry-item-qty">10</div></div>
+                </div>
+                <h3 style="margin-bottom:1rem">🥛 Dairy</h3>
+                <div class="pantry-grid">
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🥛</div><div class="pantry-item-name">Milk</div><div class="pantry-item-qty">1 gal</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status good"></div><div class="pantry-item-icon">🧀</div><div class="pantry-item-name">Cheese</div><div class="pantry-item-qty">8 oz</div></div>
+                    <div class="pantry-item"><div class="pantry-item-status low"></div><div class="pantry-item-icon">🧈</div><div class="pantry-item-name">Butter</div><div class="pantry-item-qty">Low</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="groceryPage">
+            <div class="main-content">
+                <div class="page-header"><h1>🛒 Grocery List</h1><p>Auto-generated from meal plan & low items</p></div>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header"><h3>Shopping List</h3><button class="btn btn-accent" onclick="orderInstacart()">🛒 Instacart</button></div>
+                        <div class="card-body">
+                            <div class="grocery-list">
+                                <h4 style="margin:0.5rem 0;color:var(--error)">⚠️ Low/Out Stock</h4>
+                                <div class="grocery-item"><div class="grocery-checkbox" onclick="toggleCheck(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="grocery-name">Onions</span><span class="grocery-qty">2</span></div>
+                                <div class="grocery-item"><div class="grocery-checkbox" onclick="toggleCheck(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="grocery-name">Tomatoes</span><span class="grocery-qty">6</span></div>
+                                <div class="grocery-item"><div class="grocery-checkbox" onclick="toggleCheck(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="grocery-name">Butter</span><span class="grocery-qty">1 lb</span></div>
+                                <h4 style="margin:1rem 0 0.5rem;color:var(--primary)">📋 Meal Plan Items</h4>
+                                <div class="grocery-item"><div class="grocery-checkbox" onclick="toggleCheck(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="grocery-name">Pizza dough</span><span class="grocery-qty">1</span></div>
+                                <div class="grocery-item"><div class="grocery-checkbox" onclick="toggleCheck(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span class="grocery-name">Mozzarella</span><span class="grocery-qty">16 oz</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sidebar-widgets">
+                        <div class="card instacart-card"><div class="card-body"><h4>🛒 Instacart</h4><p>Delivered in 1 hour</p><button class="btn instacart-btn" onclick="orderInstacart()">Order Now</button></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-header"><span class="camera-title" id="cameraTitle">Scan Fridge</span><button class="camera-close" onclick="closeCamera()">✕</button></div>
+        <div class="camera-view" id="cameraView">
+            <video id="videoFeed" autoplay playsinline></video>
+            <img id="capturedImg" style="display:none">
+            <div class="camera-hint" id="cameraHint">Position items in frame</div>
+            <div class="analyzing-overlay" id="analyzing" style="display:none"><div class="spinner"></div><p>AI analyzing...</p></div>
+        </div>
+        <div class="camera-controls" id="camControls">
+            <button class="gallery-btn" onclick="uploadPhoto()">🖼️</button>
+            <button class="capture-btn" onclick="capture()"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg></button>
+            <button class="switch-btn" onclick="switchCam()">🔄</button>
+        </div>
+        <div class="camera-controls" id="retakeControls" style="display:none">
+            <button class="btn btn-secondary" onclick="retake()">Retake</button>
+            <button class="btn btn-primary" onclick="analyze()">Analyze</button>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handleUpload(event)">
+    </div>
+    <div class="mobile-nav">
+        <a href="#" class="mobile-nav-item active" onclick="showPage('dashboard')" data-page="dashboard">🏠<span>Home</span></a>
+        <a href="#" class="mobile-nav-item" onclick="showPage('scan')" data-page="scan">📸<span>Scan</span></a>
+        <a href="#" class="mobile-nav-item" onclick="showPage('family')" data-page="family">👨‍👩‍👧‍👦<span>Family</span></a>
+        <a href="#" class="mobile-nav-item" onclick="showPage('pantry')" data-page="pantry">🗄️<span>Pantry</span></a>
+        <a href="#" class="mobile-nav-item" onclick="showPage('grocery')" data-page="grocery">🛒<span>Shop</span></a>
+    </div>
+    <div class="toast-container" id="toasts"></div>
+    <script>
+        let user=null,stream=null,scanType='fridge',items=[];
+        const data={dad:{n:'Dad',cal:[1450,2200],carb:[95,150],pro:[78,120],fat:[52,75]},mom:{n:'Mom',cal:[1320,1800],carb:[88,120],pro:[65,90],fat:[48,60]},emma:{n:'Emma',cal:[1680,1600],carb:[195,180],pro:[55,70],fat:[42,55]},jake:{n:'Jake',cal:[980,1400],carb:[110,160],pro:[38,60],fat:[32,50]}};
+        const sampleItems={fridge:['Chicken','Eggs','Milk','Yogurt','Cheese','Spinach','Carrots','Bell Peppers'],pantry:['Rice','Pasta','Quinoa','Olive Oil','Garlic','Canned Tomatoes'],cabinet:['Flour','Sugar','Salt','Pepper','Paprika']};
+        const meals=[{n:'Chicken Stir Fry',i:'🥘',t:'25 min',c:420,cb:35,m:95},{n:'Greek Yogurt Parfait',i:'🥣',t:'10 min',c:320,cb:38,m:90},{n:'Veggie Omelette',i:'🍳',t:'15 min',c:280,cb:8,m:88}];
+        function showLogin(){document.getElementById('loginForm').style.display='block';document.getElementById('signupForm').style.display='none'}
+        function showSignup(){document.getElementById('loginForm').style.display='none';document.getElementById('signupForm').style.display='block'}
+        function handleLogin(e){e.preventDefault();user={name:'John',initials:'JD'};showApp();toast('Welcome back!','success')}
+        function handleSignup(e){e.preventDefault();const n=document.getElementById('signupName').value;user={name:n,initials:n.split(' ').map(x=>x[0]).join('')};showApp();toast('Account created!','success')}
+        function socialLogin(p){user={name:'John',initials:'JD'};showApp();toast('Signed in with '+p,'success')}
+        function showApp(){document.getElementById('authContainer').classList.add('hidden');document.getElementById('appContainer').classList.add('active');if(user){document.getElementById('userName').textContent=user.name;document.getElementById('userAvatar').textContent=user.initials}}
+        function showPage(p){document.querySelectorAll('.page-section').forEach(x=>x.classList.remove('active'));document.getElementById(p+'Page').classList.add('active');document.querySelectorAll('.nav-link,.mobile-nav-item').forEach(x=>{x.classList.remove('active');if(x.dataset.page===p)x.classList.add('active')})}
+        function selectMember(m){document.querySelectorAll('.family-card').forEach(x=>x.classList.remove('active'));event.currentTarget.classList.add('active');const d=data[m];if(d){document.getElementById('memberTitle').textContent='📊 '+d.n+"'s Nutrition Today";document.getElementById('calVal').textContent=d.cal[0].toLocaleString();document.getElementById('carbVal').textContent=d.carb[0]+'g';document.getElementById('proVal').textContent=d.pro[0]+'g';document.getElementById('fatVal').textContent=d.fat[0]+'g';document.getElementById('calBar').style.width=(d.cal[0]/d.cal[1]*100)+'%';document.getElementById('carbBar').style.width=(d.carb[0]/d.carb[1]*100)+'%';document.getElementById('proBar').style.width=(d.pro[0]/d.pro[1]*100)+'%';document.getElementById('fatBar').style.width=(d.fat[0]/d.fat[1]*100)+'%';toast('Viewing '+d.n)}}
+        function addMember(){toast('Coming soon!')}
+        function openCamera(t){scanType=t;document.getElementById('cameraTitle').textContent='Scan '+t.charAt(0).toUpperCase()+t.slice(1);document.getElementById('cameraModal').classList.add('active');startCam()}
+        async function startCam(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});document.getElementById('videoFeed').srcObject=stream;document.getElementById('videoFeed').style.display='block';document.getElementById('capturedImg').style.display='none';document.getElementById('camControls').style.display='flex';document.getElementById('retakeControls').style.display='none';document.getElementById('analyzing').style.display='none'}catch(e){toast('Camera denied','error')}}
+        function capture(){const v=document.getElementById('videoFeed'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);document.getElementById('capturedImg').src=c.toDataURL('image/jpeg');document.getElementById('capturedImg').style.display='block';document.getElementById('videoFeed').style.display='none';document.getElementById('camControls').style.display='none';document.getElementById('retakeControls').style.display='flex';if(stream)stream.getTracks().forEach(t=>t.stop())}
+        function retake(){startCam()}
+        function analyze(){document.getElementById('retakeControls').style.display='none';document.getElementById('analyzing').style.display='flex';setTimeout(()=>{items=sampleItems[scanType]||sampleItems.fridge;closeCamera();showResults();toast('Found '+items.length+' items!','success')},2000)}
+        function uploadPhoto(){document.getElementById('photoInput').click()}
+        function handleUpload(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=x=>{document.getElementById('capturedImg').src=x.target.result;document.getElementById('capturedImg').style.display='block';document.getElementById('videoFeed').style.display='none';document.getElementById('camControls').style.display='none';document.getElementById('retakeControls').style.display='flex';if(stream)stream.getTracks().forEach(t=>t.stop())};r.readAsDataURL(f)}}
+        function switchCam(){toast('Switching...')}
+        function closeCamera(){document.getElementById('cameraModal').classList.remove('active');if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+        function showResults(){showPage('scan');document.getElementById('scanResults').style.display='block';document.getElementById('detectedItems').innerHTML=items.map(x=>'<div class="detected-item"><span>'+x+'</span><button class="remove" onclick="removeItem(this,\''+x+'\')">×</button></div>').join('');document.getElementById('suggestedMeals').innerHTML=meals.map(x=>'<div class="meal-suggestion" onclick="selectMeal(\''+x.n+'\')"><div class="meal-suggestion-icon">'+x.i+'</div><div><div class="meal-suggestion-name">'+x.n+'</div><div class="meal-suggestion-meta"><span>⏱️ '+x.t+'</span><span>🔥 '+x.c+' cal</span><span>🍞 '+x.cb+'g carbs</span></div></div><div class="meal-suggestion-match">'+x.m+'%</div></div>').join('')}
+        function removeItem(b,i){items=items.filter(x=>x!==i);b.parentElement.remove()}
+        function addItem(){const inp=document.getElementById('addItemInput');if(inp.value.trim()){items.push(inp.value.trim());document.getElementById('detectedItems').innerHTML+=`<div class="detected-item"><span>${inp.value.trim()}</span><button class="remove" onclick="removeItem(this,'${inp.value.trim()}')">×</button></div>`;inp.value='';toast('Added!')}}
+        function selectMeal(n){toast('Added "'+n+'" to plan!','success')}
+        function toggleCheck(c){c.classList.toggle('checked');c.closest('.grocery-item').classList.toggle('checked')}
+        function orderInstacart(){toast('Opening Instacart...','success');setTimeout(()=>window.open('https://instacart.com','_blank'),1000)}
+        function logMeal(){toast('Coming soon!')}
+        function toast(m,t=''){const c=document.getElementById('toasts'),d=document.createElement('div');d.className='toast '+t;d.textContent=m;c.appendChild(d);setTimeout(()=>{d.style.opacity='0';setTimeout(()=>d.remove(),300)},3000)}
+        if(new URLSearchParams(location.search).get('demo')==='true'){user={name:'Demo',initials:'DU'};showApp()}
+    </script>
 </body>
 </html>
