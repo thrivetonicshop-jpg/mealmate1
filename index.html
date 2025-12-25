@@ -215,20 +215,10 @@ function MainApp() {
     setAiMessages(prev => [...prev, { role: 'user', content: msg }]);
     setAiLoading(true);
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': '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',
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
-          system: 'You are MealMate AI, a helpful cooking assistant. Give brief, practical advice.',
-          messages: [...aiMessages, { role: 'user', content: msg }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...aiMessages, { role: 'user', content: msg }] })
       });
       const data = await res.json();
       setAiMessages(prev => [...prev, { role: 'assistant', content: data.content?.[0]?.text || 'Error' }]);
