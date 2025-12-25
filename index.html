@@ -1,201 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MealMate - AI Meal Planning</title>
-  <meta name="description" content="AI-powered meal planning. Plan meals, generate grocery lists, track nutrition.">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3073911588578821" crossorigin="anonymous"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Outfit', 'sans-serif'] } } }
-    }
-  </script>
-  <style>
-    * { font-family: 'Outfit', sans-serif; }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 40px rgba(16,185,129,0.8); } }
-    .animate-float { animation: float 3s ease-in-out infinite; }
-    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-    .glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); }
-    .dark .glass { background: rgba(15,23,42,0.9); }
-  </style>
-</head>
-<body class="bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 min-h-screen">
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, createContext, useContext } = React;
+'use client';
+import { useState } from 'react';
 
-const SUPABASE_URL = 'https://prsyibapqrzonggfhhey.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_MW_y7aXx8pJjRJELGGTomg_51DMdhbZ';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const AppContext = createContext();
-const useApp = () => useContext(AppContext);
-
-function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function MealMate() {
   const [darkMode, setDarkMode] = useState(false);
+  const [user, setUser] = useState({ email: '' });
   const [mealPlan, setMealPlan] = useState({});
   const [groceryList, setGroceryList] = useState([]);
   const [aiMessages, setAiMessages] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
-  return (
-    <AppContext.Provider value={{
-      user, loading, darkMode, setDarkMode, signOut,
-      mealPlan, setMealPlan, groceryList, setGroceryList,
-      aiMessages, setAiMessages, aiLoading, setAiLoading
-    }}>
-      {children}
-    </AppContext.Provider>
-  );
-}
-
-function Button({ children, variant = 'primary', size = 'md', className = '', onClick, disabled, loading }) {
-  const variants = {
-    primary: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/25',
-    secondary: 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200',
-    outline: 'border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50',
-    danger: 'bg-red-500 hover:bg-red-600 text-white',
-  };
-  const sizes = { sm: 'px-3 py-1.5 text-sm rounded-lg', md: 'px-4 py-2.5 rounded-xl', lg: 'px-6 py-3 text-lg rounded-xl' };
-  return (
-    <button onClick={onClick} disabled={disabled || loading} className={`inline-flex items-center justify-center gap-2 font-medium transition-all disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}>
-      {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-      {children}
-    </button>
-  );
-}
-
-function Card({ children, className = '' }) {
-  return <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm ${className}`}>{children}</div>;
-}
-
-function AuthModal({ onClose }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        alert('Check your email for confirmation!');
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
-      onClose();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <Card className="relative w-full max-w-md p-8">
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl">×</button>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{isSignUp ? 'Create Account' : 'Welcome Back'}</h2>
-        {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <Button className="w-full" loading={loading}>{isSignUp ? 'Sign Up' : 'Sign In'}</Button>
-        </form>
-        <p className="mt-6 text-center text-sm text-slate-500">
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-          <button onClick={() => setIsSignUp(!isSignUp)} className="ml-1 text-emerald-600 hover:underline">{isSignUp ? 'Sign In' : 'Sign Up'}</button>
-        </p>
-      </Card>
-    </div>
-  );
-}
-
-function LandingPage() {
-  const [authModal, setAuthModal] = useState(false);
-  return (
-    <div className="min-h-screen">
-      <nav className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🍽️</span>
-          <span className="text-xl font-bold text-slate-900 dark:text-white">MealMate</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => setAuthModal(true)} className="text-slate-600 hover:text-emerald-600">Log In</button>
-          <Button onClick={() => setAuthModal(true)} size="sm">Get Started Free</Button>
-        </div>
-      </nav>
-      <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm mb-6">✨ AI-Powered Meal Planning</div>
-        <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white mb-6">Plan Meals.<br/><span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">Save Time.</span><br/>Eat Better.</h1>
-        <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">Your AI kitchen assistant that learns your preferences and helps you cook with confidence.</p>
-        <Button onClick={() => setAuthModal(true)} size="lg" className="animate-pulse-glow">Start Free →</Button>
-        <div className="grid md:grid-cols-3 gap-6 mt-20">
-          {[
-            { icon: '🧠', title: 'AI Suggestions', desc: 'Get personalized meal ideas' },
-            { icon: '📅', title: 'Meal Planning', desc: 'Plan your week visually' },
-            { icon: '🛒', title: 'Grocery Lists', desc: 'Auto-generated shopping lists' },
-          ].map((f, i) => (
-            <Card key={i} className="p-6 hover:shadow-lg transition-shadow">
-              <span className="text-4xl mb-4 block">{f.icon}</span>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{f.title}</h3>
-              <p className="text-slate-500">{f.desc}</p>
-            </Card>
-          ))}
-        </div>
-      </div>
-      {authModal && <AuthModal onClose={() => setAuthModal(false)} />}
-    </div>
-  );
-}
-
-function MainApp() {
-  const { user, signOut, darkMode, setDarkMode, mealPlan, setMealPlan, groceryList, setGroceryList, aiMessages, setAiMessages, aiLoading, setAiLoading } = useApp();
   const [tab, setTab] = useState('plan');
   const [aiInput, setAiInput] = useState('');
 
@@ -240,112 +52,212 @@ function MainApp() {
     setGroceryList(items);
   };
 
+  const signOut = () => setUser({ email: '' });
+
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 z-40 glass border-b border-slate-200/50 dark:border-slate-800/50">
+    <div className={`min-h-screen pb-24 ${darkMode ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
+      <header className="sticky top-0 z-40 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2"><span className="text-2xl">🍽️</span><span className="font-bold text-slate-900 dark:text-white">MealMate</span></div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🍽️</span>
+            <span className="font-bold text-slate-900 dark:text-white">MealMate</span>
+          </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">{darkMode ? '☀️' : '🌙'}</button>
-            <Button variant="secondary" size="sm" onClick={signOut}>Sign Out</Button>
+            <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+            <button onClick={signOut} className="px-3 py-1.5 text-sm rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+              Sign Out
+            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Welcome{user?.email ? `, ${user.email.split('@')[0]}` : ''}! 👋</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+          Welcome{user?.email ? `, ${user.email.split('@')[0]}` : ''}! 👋
+        </h1>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto">
+          {[
+            { id: 'plan', label: '📅 Plan', },
+            { id: 'ai', label: '🤖 AI Chef' },
+            { id: 'grocery', label: '🛒 Grocery' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
+                tab === t.id
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Meal Plan Tab */}
         {tab === 'plan' && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">Weekly Plan</h2>
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-8 gap-2 min-w-[700px]">
-                <div></div>
-                {days.map(d => <div key={d} className="text-center font-medium text-slate-600 dark:text-slate-300">{d}</div>)}
-                {meals.map(m => (
-                  <React.Fragment key={m}>
-                    <div className="font-medium text-slate-500 py-2">{m}</div>
-                    {days.map(d => (
-                      <Card key={d+m} className="p-2 min-h-[70px]">
-                        {mealPlan[d]?.[m] ? (
-                          <div className="text-xs">
-                            <p className="font-medium text-slate-900 dark:text-white">{mealPlan[d][m].name}</p>
-                            <p className="text-slate-400">{mealPlan[d][m].cal} cal</p>
-                          </div>
-                        ) : <p className="text-slate-300 text-xs">+</p>}
-                      </Card>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-            <h3 className="text-lg font-semibold mt-8 mb-4 text-slate-900 dark:text-white">Add Recipes</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {recipes.map((r, i) => (
-                <Card key={i} className="p-4">
-                  <p className="font-medium text-slate-900 dark:text-white">{r.name}</p>
-                  <p className="text-sm text-slate-500">{r.time} • {r.cal} cal</p>
-                  <select onChange={e => { const [d,m] = e.target.value.split('-'); if(d) addMeal(d,m,r); e.target.value=''; }} className="mt-2 text-xs w-full p-1 bg-slate-100 dark:bg-slate-700 rounded">
-                    <option value="">Add to...</option>
-                    {days.map(d => meals.map(m => <option key={d+m} value={`${d}-${m}`}>{d} {m}</option>))}
-                  </select>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {tab === 'ai' && (
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">AI Chef 🤖</h2>
-            <Card className="h-[400px] flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {aiMessages.length === 0 && <p className="text-center text-slate-400 py-8">Ask me about recipes, cooking tips, or meal ideas!</p>}
-                {aiMessages.map((m, i) => (
-                  <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] p-3 rounded-2xl ${m.role === 'user' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'}`}>
-                      {m.content}
-                    </div>
-                  </div>
-                ))}
-                {aiLoading && <div className="text-slate-400">Thinking...</div>}
-              </div>
-              <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex gap-2">
-                <input value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && askAI()} placeholder="Ask anything..." className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none" />
-                <Button onClick={askAI} disabled={aiLoading}>Send</Button>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {tab === 'grocery' && (
-          <div className="max-w-xl mx-auto">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Grocery List 🛒</h2>
-              <Button variant="secondary" size="sm" onClick={genGrocery}>Generate</Button>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Weekly Plan</h2>
+              <button
+                onClick={genGrocery}
+                className="px-3 py-1.5 text-sm rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
+              >
+                Generate List
+              </button>
             </div>
-            <Card className="p-4">
-              {groceryList.length === 0 ? <p className="text-slate-400 text-center py-8">Add meals to plan first!</p> : (
-                <ul className="space-y-2">
-                  {groceryList.map((item, i) => (
-                    <li key={i} onClick={() => setGroceryList(prev => prev.map((x,j) => j===i ? {...x, done: !x.done} : x))} className={`flex items-center gap-3 p-2 rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 ${item.done ? 'opacity-50' : ''}`}>
-                      <span className={`w-5 h-5 rounded border-2 flex items-center justify-center ${item.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}`}>{item.done && '✓'}</span>
-                      <span className={item.done ? 'line-through' : ''}>{item.name}</span>
-                    </li>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr>
+                    <th className="text-left p-2 text-slate-500 dark:text-slate-400 text-sm font-medium"></th>
+                    {days.map(d => (
+                      <th key={d} className="text-center p-2 text-slate-500 dark:text-slate-400 text-sm font-medium">{d}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {meals.map(meal => (
+                    <tr key={meal}>
+                      <td className="p-2 text-slate-700 dark:text-slate-300 text-sm font-medium">{meal}</td>
+                      {days.map(day => (
+                        <td key={day} className="p-1">
+                          <div className="relative group">
+                            <div className="min-h-[60px] rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 p-2 text-xs text-center flex items-center justify-center hover:border-emerald-400 transition-colors cursor-pointer">
+                              {mealPlan[day]?.[meal] ? (
+                                <span className="text-slate-700 dark:text-slate-300">{mealPlan[day][meal].name}</span>
+                              ) : (
+                                <span className="text-slate-400">+ Add</span>
+                              )}
+                            </div>
+                            {/* Dropdown */}
+                            <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                              {recipes.map(r => (
+                                <button
+                                  key={r.name}
+                                  onClick={() => addMeal(day, meal, r)}
+                                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg"
+                                >
+                                  {r.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </ul>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* AI Chef Tab */}
+        {tab === 'ai' && (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">🤖 AI Chef</h2>
+            <div className="h-64 overflow-y-auto mb-4 space-y-3">
+              {aiMessages.length === 0 && (
+                <p className="text-slate-500 dark:text-slate-400 text-center py-8">
+                  Ask me anything about cooking, recipes, or meal planning!
+                </p>
               )}
-            </Card>
+              {aiMessages.map((m, i) => (
+                <div
+                  key={i}
+                  className={`p-3 rounded-xl max-w-[80%] ${
+                    m.role === 'user'
+                      ? 'bg-emerald-500 text-white ml-auto'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                  }`}
+                >
+                  {m.content}
+                </div>
+              ))}
+              {aiLoading && (
+                <div className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 p-3 rounded-xl max-w-[80%]">
+                  Thinking...
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && askAI()}
+                placeholder="Ask the AI chef..."
+                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <button
+                onClick={askAI}
+                disabled={aiLoading}
+                className="px-4 py-2 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Grocery Tab */}
+        {tab === 'grocery' && (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">🛒 Grocery List</h2>
+            {groceryList.length === 0 ? (
+              <p className="text-slate-500 dark:text-slate-400 text-center py-8">
+                Add meals to your plan, then click "Generate List"
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {groceryList.map((item, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={item.done}
+                      onChange={() => {
+                        const updated = [...groceryList];
+                        updated[i].done = !updated[i].done;
+                        setGroceryList(updated);
+                      }}
+                      className="w-5 h-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500"
+                    />
+                    <span className={`text-slate-700 dark:text-slate-300 ${item.done ? 'line-through opacity-50' : ''}`}>
+                      {item.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 dark:border-slate-700 px-4 py-3">
-        <div className="max-w-lg mx-auto flex justify-around">
-          {[{ id: 'plan', icon: '📅', label: 'Plan' }, { id: 'ai', icon: '🤖', label: 'AI Chef' }, { id: 'grocery', icon: '🛒', label: 'Grocery' }].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl ${tab === t.id ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' : 'text-slate-500'}`}>
-              <span className="text-xl">{t.icon}</span>
-              <span className="text-xs font-medium">{t.label}</span>
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-4 py-2">
+        <div className="max-w-6xl mx-auto flex justify-around">
+          {[
+            { id: 'plan', icon: '📅', label: 'Plan' },
+            { id: 'ai', icon: '🤖', label: 'AI' },
+            { id: 'grocery', icon: '🛒', label: 'List' },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={`flex flex-col items-center py-1 px-4 rounded-lg transition-colors ${
+                tab === item.id
+                  ? 'text-emerald-500'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span className="text-xs mt-1">{item.label}</span>
             </button>
           ))}
         </div>
@@ -353,14 +265,3 @@ function MainApp() {
     </div>
   );
 }
-
-function App() {
-  const { loading, user } = useApp();
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><span className="text-4xl animate-pulse">🍽️</span></div>;
-  return user ? <MainApp /> : <LandingPage />;
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<AppProvider><App /></AppProvider>);
-</script>
-</body>
-</html>
