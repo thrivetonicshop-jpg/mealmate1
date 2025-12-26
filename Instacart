@@ -1,0 +1,73 @@
+export default async function handler(req, res) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { items, title = 'MealMate Grocery List' } = req.body;
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Items array is required' });
+  }
+
+  const apiKey = process.env.INSTACART_API_KEY;
+
+  // If we have an API key, try the real Instacart API
+  if (apiKey) {
+    try {
+      const lineItems = items.map(item => ({
+        name: item.name,
+        quantity: item.quantity || 1
+      }));
+
+      const response = await fetch('https://connect.instacart.com/idp/v1/products/products_link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          title: title,
+          line_items: lineItems,
+          landing_page_configuration: {
+            partner_linkback_url: 'https://www.bestmealmate.com',
+            enable_pantry_items: true
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return res.status(200).json({ 
+          url: data.products_link_url,
+          success: true 
+        });
+      } else {
+        console.error('Instacart API error:', await response.text());
+      }
+    } catch (error) {
+      console.error('Instacart API error:', error);
+    }
+  }
+
+  // Fallback: Create Instacart search URL with items
+  // This opens Instacart with the first item as a search
+  const searchQuery = encodeURIComponent(items[0].name);
+  const fallbackUrl = `https://www.instacart.com/store/search/${searchQuery}`;
+
+  return res.status(200).json({ 
+    url: fallbackUrl,
+    fallbackUrl: 'https://www.instacart.com',
+    message: 'Opening Instacart - add your items manually',
+    success: true 
+  });
+}
