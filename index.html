@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a0a">
-    <title>MealMate - AI Meal Planning</title>
+    <title>Best Meal Mate - AI Meal Planning</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
 </head>
 <body>
     <header class="app-header">
-        <div class="logo"><div class="logo-icon">🍳</div><span class="logo-text">MealMate</span></div>
+        <div class="logo"><div class="logo-icon">🍳</div><span class="logo-text">Best Meal Mate</span></div>
         <div class="user-avatar">D</div>
     </header>
     <main class="main-content">
@@ -80,7 +80,7 @@
         <div class="video-container">
             <video id="camera-video" autoplay playsinline muted></video>
             <div class="scanner-overlay" id="scanner-overlay"><div class="scan-frame"><div class="scan-corners-bottom"></div><div class="scan-line"></div></div></div>
-            <div class="scanner-state" id="permission-state"><div class="scanner-state-icon">📷</div><h3 class="scanner-state-title">Camera Access</h3><p class="scanner-state-text">MealMate needs camera access to scan your ingredients.</p><button class="scanner-state-btn" id="request-camera">Enable Camera</button></div>
+            <div class="scanner-state" id="permission-state"><div class="scanner-state-icon">📷</div><h3 class="scanner-state-title">Camera Access</h3><p class="scanner-state-text">Best Meal Mate needs camera access to scan your ingredients.</p><button class="scanner-state-btn" id="request-camera">Enable Camera</button></div>
             <div class="scanner-state hidden" id="error-state"><div class="scanner-state-icon">⚠️</div><h3 class="scanner-state-title">Camera Unavailable</h3><p class="scanner-state-text" id="error-message">Unable to access camera.</p><button class="scanner-state-btn" id="retry-camera">Try Again</button></div>
             <div class="scanner-hint" id="scanner-hint" style="display:none"><p class="scanner-hint-text">Point at food items to scan</p></div>
         </div>
@@ -290,11 +290,23 @@
             updateExpiringItems();
         }
 
-        function checkApiKey() { if(!CLAUDE_API_KEY && !localStorage.getItem('mealmate_api_banner_dismissed')) document.getElementById('api-banner').classList.add('show'); }
+        let logoTaps = 0; let logoTapTimer = null;
+        function handleLogoTap() {
+            logoTaps++;
+            clearTimeout(logoTapTimer);
+            logoTapTimer = setTimeout(() => { logoTaps = 0; }, 2000);
+            if (logoTaps >= 5) {
+                logoTaps = 0;
+                document.getElementById('api-banner').classList.add('show');
+                showToast('🔑 API Settings unlocked', 'success');
+            }
+        }
+        function checkApiKey() { /* Banner hidden by default - tap logo 5x to show */ }
         function saveApiKey() { const k=document.getElementById('api-key-input').value.trim(); if(k&&k.startsWith('sk-ant-')){CLAUDE_API_KEY=k;localStorage.setItem('mealmate_api_key',k);document.getElementById('api-banner').classList.remove('show');showToast('API key saved! AI scanning enabled.');}else{showToast('Invalid API key','error');} }
         function dismissBanner() { document.getElementById('api-banner').classList.remove('show'); localStorage.setItem('mealmate_api_banner_dismissed','true'); }
 
         document.addEventListener('DOMContentLoaded',()=>{
+            document.querySelector('.logo').addEventListener('click', handleLogoTap);
             document.getElementById('greeting-time').textContent=getGreeting();
             checkApiKey();
             updateExpiringItems();
