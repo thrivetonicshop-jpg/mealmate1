@@ -61,6 +61,11 @@
         render();
       }
 
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
       function checkAuth() {
         supabase.auth.getUser().then(function(result) {
           var user = result.data ? result.data.user : null;
@@ -315,8 +320,8 @@
             '<h2 class="text-2xl font-bold text-center mb-6">' + (isLogin ? 'Welcome Back' : 'Create Account') + '</h2>' +
             (state.error ? '<div class="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm">' + state.error + '</div>' : '') +
             '<div class="space-y-4">' +
-              '<input type="email" placeholder="Email" value="' + state.email + '" oninput="update({email:this.value})" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
-              '<input type="password" placeholder="Password" value="' + state.password + '" oninput="update({password:this.value})" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+              '<input type="email" placeholder="Email" value="' + escapeHtml(state.email) + '" oninput="update({email:this.value})" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+              '<input type="password" placeholder="Password" value="' + escapeHtml(state.password) + '" oninput="update({password:this.value})" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
               '<button onclick="' + (isLogin ? 'handleSignIn()' : 'handleSignUp()') + '" class="touch-active w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 rounded-xl shadow-lg transition-all' + (state.authLoading ? ' opacity-50' : '') + '">' + (state.authLoading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')) + '</button>' +
             '</div>' +
             '<p class="text-center text-gray-600 mt-6">' + (isLogin ? "Don\'t have an account? " : "Already have an account? ") + '<button onclick="update({view:\'' + (isLogin ? 'signup' : 'login') + '\',error:\'\'})" class="touch-active text-orange-500 font-semibold">' + (isLogin ? 'Sign Up' : 'Sign In') + '</button></p>' +
@@ -436,15 +441,15 @@
                 '<button onclick="update({showAddPantry:false})" class="touch-active text-gray-500 text-2xl">&times;</button>' +
               '</div>' +
               '<div class="space-y-4">' +
-                '<input type="text" placeholder="Item name (e.g., Milk)" value="' + state.pantryForm.name + '" oninput="state.pantryForm.name=this.value" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+                '<input type="text" placeholder="Item name (e.g., Milk)" value="' + escapeHtml(state.pantryForm.name) + '" oninput="state.pantryForm.name=this.value" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
                 '<div class="grid grid-cols-3 gap-2">' +
                   '<button onclick="state.pantryForm.category=\'fridge\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'fridge' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">🧊</div><div class="text-xs mt-1">Fridge</div></button>' +
                   '<button onclick="state.pantryForm.category=\'freezer\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'freezer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">❄️</div><div class="text-xs mt-1">Freezer</div></button>' +
                   '<button onclick="state.pantryForm.category=\'pantry\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'pantry' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">🥫</div><div class="text-xs mt-1">Pantry</div></button>' +
                 '</div>' +
                 '<div class="grid grid-cols-2 gap-3">' +
-                  '<div><label class="text-sm text-gray-600 mb-1 block">Quantity</label><input type="text" placeholder="1" value="' + state.pantryForm.quantity + '" oninput="state.pantryForm.quantity=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
-                  '<div><label class="text-sm text-gray-600 mb-1 block">Expires</label><input type="date" value="' + state.pantryForm.expiry + '" oninput="state.pantryForm.expiry=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
+                  '<div><label class="text-sm text-gray-600 mb-1 block">Quantity</label><input type="text" placeholder="1" value="' + escapeHtml(state.pantryForm.quantity) + '" oninput="state.pantryForm.quantity=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
+                  '<div><label class="text-sm text-gray-600 mb-1 block">Expires</label><input type="date" value="' + escapeHtml(state.pantryForm.expiry) + '" oninput="state.pantryForm.expiry=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
                 '</div>' +
                 '<button onclick="addPantryItem()" class="touch-active w-full bg-orange-500 text-white py-4 rounded-xl font-semibold">Add to Pantry</button>' +
               '</div>' +
@@ -520,7 +525,7 @@
         html += '</div>';
         html += '<div class="p-4 glass border-t border-gray-200">' +
           '<div class="flex gap-2">' +
-            '<input type="text" id="ai-input" placeholder="Ask the AI Chef..." value="' + state.aiInput + '" oninput="update({aiInput:this.value})" onkeypress="if(event.key===\'Enter\')sendMessage()" class="flex-1 p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+            '<input type="text" id="ai-input" placeholder="Ask the AI Chef..." value="' + escapeHtml(state.aiInput) + '" oninput="update({aiInput:this.value})" onkeypress="if(event.key===\'Enter\')sendMessage()" class="flex-1 p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
             '<button onclick="sendMessage()" class="touch-active bg-orange-500 text-white px-5 py-3 rounded-xl font-semibold">Send</button>' +
           '</div>' +
         '</div></div>';
