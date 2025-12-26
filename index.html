@@ -12,9 +12,15 @@
       padding: 0;
     }
 
-    html, body {
+    html {
       height: 100%;
-      overflow: hidden;
+    }
+    
+    body {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .onboarding-container {
@@ -24,7 +30,6 @@
       background: linear-gradient(165deg, #fef9f3 0%, #fff8ed 50%, #fef3e3 100%);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       position: relative;
     }
 
@@ -37,6 +42,7 @@
       height: 60vw;
       background: radial-gradient(circle, rgba(255, 183, 77, 0.15) 0%, transparent 70%);
       pointer-events: none;
+      z-index: 0;
     }
 
     .onboarding-container::after {
@@ -48,6 +54,7 @@
       height: 50vw;
       background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
       pointer-events: none;
+      z-index: 0;
     }
 
     .progress-container {
@@ -56,6 +63,7 @@
       justify-content: center;
       gap: 10px;
       z-index: 10;
+      position: relative;
     }
 
     .progress-dot {
@@ -89,9 +97,11 @@
       padding: 8px 12px;
       z-index: 100;
       transition: color 0.2s;
+      touch-action: manipulation;
     }
 
-    .skip-btn:hover {
+    .skip-btn:hover,
+    .skip-btn:active {
       color: #5d4e37;
     }
 
@@ -101,6 +111,7 @@
       flex-direction: column;
       padding: 20px 24px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       position: relative;
       z-index: 5;
     }
@@ -228,15 +239,14 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       backdrop-filter: blur(10px);
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
     }
 
-    .option-card:hover {
+    .option-card:hover,
+    .option-card:active {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    .option-card:active {
-      transform: scale(0.98);
     }
 
     .option-card.selected {
@@ -248,6 +258,7 @@
     .option-icon {
       font-size: 32px;
       line-height: 1;
+      pointer-events: none;
     }
 
     .option-label {
@@ -255,6 +266,7 @@
       font-weight: 600;
       color: #3d3225;
       text-align: center;
+      pointer-events: none;
     }
 
     .option-card.selected .option-label {
@@ -279,14 +291,13 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       backdrop-filter: blur(10px);
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
     }
 
-    .option-row:hover {
-      background: rgba(255, 255, 255, 0.95);
-    }
-
+    .option-row:hover,
     .option-row:active {
-      transform: scale(0.99);
+      background: rgba(255, 255, 255, 0.95);
     }
 
     .option-row.selected {
@@ -296,11 +307,13 @@
 
     .option-row .option-icon {
       font-size: 28px;
+      pointer-events: none;
     }
 
     .option-row .option-label {
       font-size: 16px;
       text-align: left;
+      pointer-events: none;
     }
 
     .option-check {
@@ -314,6 +327,7 @@
       justify-content: center;
       transition: all 0.2s;
       font-size: 14px;
+      pointer-events: none;
     }
 
     .option-row.selected .option-check {
@@ -345,16 +359,15 @@
       align-items: center;
       justify-content: center;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
       font-family: 'DM Sans', sans-serif;
+      user-select: none;
     }
 
-    .size-btn:hover {
+    .size-btn:hover,
+    .size-btn:active {
       transform: scale(1.05);
       border-color: #ff7043;
-    }
-
-    .size-btn:active {
-      transform: scale(0.95);
     }
 
     .size-btn.selected {
@@ -382,9 +395,12 @@
       cursor: pointer;
       transition: all 0.3s;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
     }
 
-    .level-card:hover {
+    .level-card:hover,
+    .level-card:active {
       background: rgba(255, 255, 255, 0.95);
     }
 
@@ -395,10 +411,12 @@
 
     .level-emoji {
       font-size: 32px;
+      pointer-events: none;
     }
 
     .level-info {
       flex: 1;
+      pointer-events: none;
     }
 
     .level-name {
@@ -470,6 +488,7 @@
       display: flex;
       gap: 12px;
       z-index: 10;
+      position: relative;
     }
 
     .nav-btn {
@@ -482,7 +501,9 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: none;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
       font-family: 'DM Sans', sans-serif;
+      user-select: none;
     }
 
     .nav-btn.secondary {
@@ -491,7 +512,8 @@
       flex: 0.4;
     }
 
-    .nav-btn.secondary:hover {
+    .nav-btn.secondary:hover,
+    .nav-btn.secondary:active {
       background: rgba(255, 255, 255, 0.95);
     }
 
@@ -501,19 +523,17 @@
       box-shadow: 0 6px 24px rgba(255, 112, 67, 0.35);
     }
 
-    .nav-btn.primary:hover {
+    .nav-btn.primary:hover,
+    .nav-btn.primary:active {
       transform: translateY(-2px);
       box-shadow: 0 8px 32px rgba(255, 112, 67, 0.4);
-    }
-
-    .nav-btn.primary:active {
-      transform: translateY(0);
     }
 
     .nav-btn.primary:disabled {
       background: #ccc;
       box-shadow: none;
       cursor: not-allowed;
+      transform: none;
     }
 
     .nav-btn.primary.full {
@@ -525,7 +545,8 @@
       box-shadow: 0 6px 24px rgba(76, 175, 80, 0.35);
     }
 
-    .nav-btn.cta:hover {
+    .nav-btn.cta:hover,
+    .nav-btn.cta:active {
       box-shadow: 0 8px 32px rgba(76, 175, 80, 0.4);
     }
 
@@ -710,6 +731,26 @@
       { id: 'advanced', emoji: '⭐', name: 'Adventurous', desc: 'Bring on the challenge!' }
     ];
 
+    // Event delegation for touch/click handling
+    function handleTap(selector, callback) {
+      document.addEventListener('click', function(e) {
+        const target = e.target.closest(selector);
+        if (target) {
+          e.preventDefault();
+          callback(target);
+        }
+      }, { passive: false });
+      
+      // Also handle touchend for more responsive mobile
+      document.addEventListener('touchend', function(e) {
+        const target = e.target.closest(selector);
+        if (target) {
+          e.preventDefault();
+          callback(target);
+        }
+      }, { passive: false });
+    }
+
     // Initialize
     function init() {
       renderProgressDots();
@@ -719,6 +760,55 @@
       renderLevels();
       renderNav();
       updateView();
+      setupEventListeners();
+    }
+
+    function setupEventListeners() {
+      // Goal cards
+      handleTap('.option-card[data-goal]', function(el) {
+        toggleGoal(el.dataset.goal);
+      });
+      
+      // Dietary rows
+      handleTap('.option-row[data-dietary]', function(el) {
+        toggleDietary(el.dataset.dietary);
+      });
+      
+      // Size buttons
+      handleTap('.size-btn[data-size]', function(el) {
+        selectSize(el.dataset.size);
+      });
+      
+      // Level cards
+      handleTap('.level-card[data-level]', function(el) {
+        selectLevel(el.dataset.level);
+      });
+      
+      // Nav buttons
+      handleTap('.nav-btn[data-action="next"]', function(el) {
+        if (!el.disabled) nextStep();
+      });
+      
+      handleTap('.nav-btn[data-action="prev"]', function(el) {
+        prevStep();
+      });
+      
+      handleTap('.nav-btn[data-action="complete"]', function(el) {
+        complete();
+      });
+      
+      // Skip button
+      handleTap('#skipBtn', function() {
+        currentStep = 4;
+        updateView();
+      });
+      
+      // Close modal
+      handleTap('#successModal', function(el) {
+        if (el.id === 'successModal') {
+          el.classList.remove('show');
+        }
+      });
     }
 
     function renderProgressDots() {
@@ -736,7 +826,7 @@
     function renderGoals() {
       const grid = document.getElementById('goalsGrid');
       grid.innerHTML = goals.map(g => `
-        <div class="option-card ${userData.goals.includes(g.id) ? 'selected' : ''}" data-id="${g.id}" onclick="toggleGoal('${g.id}')">
+        <div class="option-card ${userData.goals.includes(g.id) ? 'selected' : ''}" data-goal="${g.id}">
           <span class="option-icon">${g.icon}</span>
           <span class="option-label">${g.label}</span>
         </div>
@@ -746,7 +836,7 @@
     function renderDietary() {
       const list = document.getElementById('dietaryList');
       list.innerHTML = dietary.map(d => `
-        <div class="option-row ${userData.dietary.includes(d.id) ? 'selected' : ''}" onclick="toggleDietary('${d.id}')">
+        <div class="option-row ${userData.dietary.includes(d.id) ? 'selected' : ''}" data-dietary="${d.id}">
           <span class="option-icon">${d.icon}</span>
           <span class="option-label">${d.label}</span>
           <div class="option-check">${userData.dietary.includes(d.id) ? '✓' : ''}</div>
@@ -757,14 +847,14 @@
     function renderSizes() {
       const picker = document.getElementById('sizePicker');
       picker.innerHTML = sizes.map(s => `
-        <button class="size-btn ${userData.householdSize === s ? 'selected' : ''}" onclick="selectSize('${s}')">${s}</button>
+        <button type="button" class="size-btn ${userData.householdSize === s || userData.householdSize === String(s) ? 'selected' : ''}" data-size="${s}">${s}</button>
       `).join('');
     }
 
     function renderLevels() {
       const options = document.getElementById('levelOptions');
       options.innerHTML = levels.map(l => `
-        <div class="level-card ${userData.cookingLevel === l.id ? 'selected' : ''}" onclick="selectLevel('${l.id}')">
+        <div class="level-card ${userData.cookingLevel === l.id ? 'selected' : ''}" data-level="${l.id}">
           <span class="level-emoji">${l.emoji}</span>
           <div class="level-info">
             <div class="level-name">${l.name}</div>
@@ -778,14 +868,14 @@
       const nav = document.getElementById('navContainer');
       
       if (currentStep === 0) {
-        nav.innerHTML = '<button class="nav-btn primary full" onclick="nextStep()">Let\'s Go →</button>';
+        nav.innerHTML = '<button type="button" class="nav-btn primary full" data-action="next">Let\'s Go →</button>';
       } else if (currentStep === 4) {
-        nav.innerHTML = '<button class="nav-btn primary cta full" onclick="complete()">Start Cooking 🚀</button>';
+        nav.innerHTML = '<button type="button" class="nav-btn primary cta full" data-action="complete">Start Cooking 🚀</button>';
       } else {
         const disabled = !canProceed() ? 'disabled' : '';
         nav.innerHTML = `
-          <button class="nav-btn secondary" onclick="prevStep()">Back</button>
-          <button class="nav-btn primary" onclick="nextStep()" ${disabled}>Continue →</button>
+          <button type="button" class="nav-btn secondary" data-action="prev">Back</button>
+          <button type="button" class="nav-btn primary" data-action="next" ${disabled}>Continue →</button>
         `;
       }
     }
@@ -800,7 +890,7 @@
         let html = allTags.map(t => `<span class="preview-tag">${t.replace('-', ' ')}</span>`).join('');
         if (userData.householdSize) {
           const label = userData.householdSize === '5+' ? '5+ people' : 
-                       (userData.householdSize === 1 ? '1 person' : `${userData.householdSize} people`);
+                       (userData.householdSize === 1 || userData.householdSize === '1' ? '1 person' : `${userData.householdSize} people`);
           html += `<span class="preview-tag">${label}</span>`;
         }
         items.innerHTML = html;
@@ -898,21 +988,12 @@
       console.log('Onboarding complete:', userData);
     }
 
-    // Skip button
-    document.getElementById('skipBtn').onclick = () => {
-      currentStep = 4;
-      updateView();
-    };
-
-    // Close modal on click
-    document.getElementById('successModal').onclick = (e) => {
-      if (e.target.id === 'successModal') {
-        document.getElementById('successModal').classList.remove('show');
-      }
-    };
-
-    // Initialize
-    init();
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
