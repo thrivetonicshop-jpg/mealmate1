@@ -27,10 +27,13 @@
     .expiring-soon { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; }
     .expired { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 4px solid #ef4444; }
     .fresh { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-left: 4px solid #10b981; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+    .modal-content { background: white; width: 100%; max-width: 32rem; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; }
   </style>
 </head>
 <body>
   <div id="root"></div>
+  
   <script>
     (function() {
       var SUPABASE_URL = 'https://lrtcvfpxamjxseyykenv.supabase.co';
@@ -42,73 +45,95 @@
         user: null,
         view: 'landing',
         tab: 'plan',
-        email: '',
-        password: '',
         error: '',
         authLoading: false,
         meals: {},
         groceryList: [],
         pantryItems: [],
         aiMessages: [],
-        aiInput: '',
         instacartLoading: false,
-        showAddPantry: false,
-        pantryForm: { name: '', category: 'fridge', expiry: '', quantity: '1' }
+        showAddPantry: false
       };
 
-      function update(changes) {
-        for (var key in changes) { state[key] = changes[key]; }
-        render();
-      }
-
-      function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      function render() {
+        var root = document.getElementById('root');
+        if (!root) return;
+        
+        if (state.loading) {
+          root.innerHTML = '<div class="min-h-screen flex items-center justify-center"><div class="text-center"><div class="text-6xl animate-pulse">🍽️</div><p class="mt-4 text-gray-600">Loading...</p></div></div>';
+          return;
+        }
+        
+        if (state.view === 'landing') { root.innerHTML = renderLanding(); }
+        else if (state.view === 'login') { root.innerHTML = renderAuth('login'); }
+        else if (state.view === 'signup') { root.innerHTML = renderAuth('signup'); }
+        else if (state.view === 'app') { root.innerHTML = renderApp(); }
       }
 
       function checkAuth() {
         supabase.auth.getUser().then(function(result) {
           var user = result.data ? result.data.user : null;
-          update({ loading: false, user: user, view: user ? 'app' : 'landing' });
+          state.loading = false;
+          state.user = user;
+          state.view = user ? 'app' : 'landing';
+          render();
         }).catch(function() {
-          update({ loading: false });
+          state.loading = false;
+          render();
         });
       }
 
       function handleSignUp() {
-        if (!state.email || !state.password) { update({ error: 'Please fill in all fields' }); return; }
-        update({ authLoading: true, error: '' });
-        supabase.auth.signUp({ email: state.email, password: state.password }).then(function(result) {
-          if (result.error) { update({ error: result.error.message, authLoading: false }); }
-          else { update({ user: result.data.user, view: 'app', authLoading: false }); }
-        }).catch(function(e) { update({ error: e.message, authLoading: false }); });
+        var email = document.getElementById('email-input').value;
+        var password = document.getElementById('password-input').value;
+        if (!email || !password) { state.error = 'Please fill in all fields'; render(); return; }
+        state.authLoading = true;
+        state.error = '';
+        render();
+        supabase.auth.signUp({ email: email, password: password }).then(function(result) {
+          state.authLoading = false;
+          if (result.error) { state.error = result.error.message; }
+          else { state.user = result.data.user; state.view = 'app'; }
+          render();
+        }).catch(function(e) { state.error = e.message; state.authLoading = false; render(); });
       }
 
       function handleSignIn() {
-        if (!state.email || !state.password) { update({ error: 'Please fill in all fields' }); return; }
-        update({ authLoading: true, error: '' });
-        supabase.auth.signInWithPassword({ email: state.email, password: state.password }).then(function(result) {
-          if (result.error) { update({ error: result.error.message, authLoading: false }); }
-          else { update({ user: result.data.user, view: 'app', authLoading: false }); }
-        }).catch(function(e) { update({ error: e.message, authLoading: false }); });
+        var email = document.getElementById('email-input').value;
+        var password = document.getElementById('password-input').value;
+        if (!email || !password) { state.error = 'Please fill in all fields'; render(); return; }
+        state.authLoading = true;
+        state.error = '';
+        render();
+        supabase.auth.signInWithPassword({ email: email, password: password }).then(function(result) {
+          state.authLoading = false;
+          if (result.error) { state.error = result.error.message; }
+          else { state.user = result.data.user; state.view = 'app'; }
+          render();
+        }).catch(function(e) { state.error = e.message; state.authLoading = false; render(); });
       }
 
       function handleSignOut() {
         supabase.auth.signOut().then(function() {
-          update({ user: null, view: 'landing', email: '', password: '' });
+          state.user = null;
+          state.view = 'landing';
+          render();
         });
       }
 
+      function setView(v) { state.view = v; state.error = ''; render(); }
+      function setTab(t) { state.tab = t; render(); }
+
       // AI CHEF
       function sendMessage() {
-        var msg = state.aiInput.trim();
+        var input = document.getElementById('ai-input');
+        var msg = input ? input.value.trim() : '';
         if (!msg) return;
-        var msgs = state.aiMessages.slice();
-        msgs.push({ role: 'user', text: msg });
-        update({ aiMessages: msgs, aiInput: '' });
-        var thinking = msgs.slice();
-        thinking.push({ role: 'bot', text: 'Thinking...', loading: true });
-        update({ aiMessages: thinking });
+        input.value = '';
+        
+        state.aiMessages.push({ role: 'user', text: msg });
+        state.aiMessages.push({ role: 'bot', text: 'Thinking...', loading: true });
+        render();
 
         fetch('/api/chat', {
           method: 'POST',
@@ -118,9 +143,9 @@
           if (res.ok) return res.json();
           throw new Error('API error');
         }).then(function(data) {
-          var final = msgs.slice();
-          final.push({ role: 'bot', text: data.reply || data.message || 'Here is a suggestion.' });
-          update({ aiMessages: final });
+          state.aiMessages.pop();
+          state.aiMessages.push({ role: 'bot', text: data.reply || data.message || 'Here is a suggestion.' });
+          render();
         }).catch(function() {
           var fallback = [
             "Try using what's in your fridge first! What ingredients do you have?",
@@ -128,9 +153,9 @@
             "I'd recommend meal prepping on Sundays to save time during the week.",
             "What cuisines do you enjoy? I can suggest recipes based on your preferences."
           ];
-          var final = msgs.slice();
-          final.push({ role: 'bot', text: fallback[Math.floor(Math.random() * fallback.length)] });
-          update({ aiMessages: final });
+          state.aiMessages.pop();
+          state.aiMessages.push({ role: 'bot', text: fallback[Math.floor(Math.random() * fallback.length)] });
+          render();
         });
       }
 
@@ -167,25 +192,26 @@
         }
       }
 
-      // PANTRY FUNCTIONS
+      // PANTRY
+      function showPantryModal() { state.showAddPantry = true; render(); }
+      function hidePantryModal() { state.showAddPantry = false; render(); }
+
       function addPantryItem() {
-        var form = state.pantryForm;
-        if (!form.name.trim()) {
-          alert('Please enter an item name');
-          return;
-        }
+        var nameInput = document.getElementById('pantry-name');
+        var qtyInput = document.getElementById('pantry-qty');
+        var expInput = document.getElementById('pantry-exp');
+        var category = document.querySelector('input[name="pantry-cat"]:checked');
         
-        var newItem = {
+        var name = nameInput ? nameInput.value.trim() : '';
+        if (!name) { alert('Please enter an item name'); return; }
+        
+        state.pantryItems.push({
           id: Date.now(),
-          name: form.name.trim(),
-          category: form.category,
-          quantity: form.quantity || '1',
-          expiry: form.expiry || null,
-          addedDate: new Date().toISOString()
-        };
-        
-        state.pantryItems.push(newItem);
-        state.pantryForm = { name: '', category: 'fridge', expiry: '', quantity: '1' };
+          name: name,
+          category: category ? category.value : 'fridge',
+          quantity: qtyInput ? qtyInput.value || '1' : '1',
+          expiry: expInput ? expInput.value || null : null
+        });
         state.showAddPantry = false;
         render();
       }
@@ -195,19 +221,16 @@
         render();
       }
 
-      function movePantryToGrocery(item) {
-        state.groceryList.push({ id: Date.now(), name: item.name, done: false });
-        removePantryItem(item.id);
+      function movePantryToGrocery(id, name) {
+        state.groceryList.push({ id: Date.now(), name: name, done: false });
+        removePantryItem(id);
       }
 
       function getDaysUntilExpiry(expiryDate) {
         if (!expiryDate) return null;
-        var today = new Date();
-        today.setHours(0, 0, 0, 0);
-        var expiry = new Date(expiryDate);
-        expiry.setHours(0, 0, 0, 0);
-        var diff = expiry - today;
-        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        var today = new Date(); today.setHours(0,0,0,0);
+        var expiry = new Date(expiryDate); expiry.setHours(0,0,0,0);
+        return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
       }
 
       function getExpiryStatus(expiryDate) {
@@ -224,48 +247,42 @@
         if (days < 0) return 'Expired ' + Math.abs(days) + ' day' + (Math.abs(days) !== 1 ? 's' : '') + ' ago';
         if (days === 0) return 'Expires today!';
         if (days === 1) return 'Expires tomorrow';
-        if (days <= 3) return 'Expires in ' + days + ' days';
         return 'Expires in ' + days + ' days';
       }
 
       function getExpiringItems() {
         return state.pantryItems.filter(function(item) {
-          var status = getExpiryStatus(item.expiry);
-          return status === 'expired' || status === 'expiring';
+          var s = getExpiryStatus(item.expiry);
+          return s === 'expired' || s === 'expiring';
         });
       }
 
       // INSTACART
       function orderOnInstacart() {
-        if (state.groceryList.length === 0) {
-          alert('Your grocery list is empty!');
-          return;
-        }
-        var itemsToOrder = state.groceryList.filter(function(item) { return !item.done; });
-        if (itemsToOrder.length === 0) {
-          alert('All items are checked off!');
-          return;
-        }
-        update({ instacartLoading: true });
-        var formattedItems = itemsToOrder.map(function(item) {
-          return { name: item.name, quantity: 1 };
-        });
+        if (state.groceryList.length === 0) { alert('Your grocery list is empty!'); return; }
+        var items = state.groceryList.filter(function(item) { return !item.done; });
+        if (items.length === 0) { alert('All items are checked off!'); return; }
+        state.instacartLoading = true;
+        render();
         fetch('/api/instacart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: formattedItems, title: 'MealMate Grocery List' })
+          body: JSON.stringify({ items: items.map(function(i) { return { name: i.name, quantity: 1 }; }), title: 'MealMate Grocery List' })
         }).then(function(res) { return res.json(); })
         .then(function(data) {
-          update({ instacartLoading: false });
+          state.instacartLoading = false;
+          render();
           window.open(data.url || data.fallbackUrl || 'https://www.instacart.com', '_blank');
         }).catch(function() {
-          update({ instacartLoading: false });
+          state.instacartLoading = false;
+          render();
           window.open('https://www.instacart.com', '_blank');
         });
       }
 
-      // EXPOSE FUNCTIONS
-      window.update = update;
+      // EXPOSE FUNCTIONS GLOBALLY
+      window.setView = setView;
+      window.setTab = setTab;
       window.handleSignUp = handleSignUp;
       window.handleSignIn = handleSignIn;
       window.handleSignOut = handleSignOut;
@@ -275,32 +292,21 @@
       window.removeItem = removeItem;
       window.addMeal = addMeal;
       window.orderOnInstacart = orderOnInstacart;
+      window.showPantryModal = showPantryModal;
+      window.hidePantryModal = hidePantryModal;
       window.addPantryItem = addPantryItem;
       window.removePantryItem = removePantryItem;
       window.movePantryToGrocery = movePantryToGrocery;
 
       // RENDER FUNCTIONS
-      function render() {
-        var root = document.getElementById('root');
-        if (!root) return;
-        if (state.loading) {
-          root.innerHTML = '<div class="min-h-screen flex items-center justify-center"><div class="text-center"><div class="text-6xl animate-pulse">🍽️</div><p class="mt-4 text-gray-600">Loading...</p></div></div>';
-          return;
-        }
-        if (state.view === 'landing') { root.innerHTML = renderLanding(); }
-        else if (state.view === 'login') { root.innerHTML = renderAuth('login'); }
-        else if (state.view === 'signup') { root.innerHTML = renderAuth('signup'); }
-        else if (state.view === 'app') { root.innerHTML = renderApp(); }
-      }
-
       function renderLanding() {
         return '<div class="min-h-screen flex flex-col items-center justify-center p-6 text-center fade-in">' +
           '<div class="text-7xl mb-6">🍽️</div>' +
           '<h1 class="text-4xl font-bold text-gray-900 mb-2">MealMate</h1>' +
           '<p class="text-lg text-gray-600 mb-8">AI-Powered Meal Planning</p>' +
           '<div class="w-full max-w-xs space-y-4">' +
-            '<button onclick="update({view:\'signup\'})" class="touch-active w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transition-all">Get Started Free</button>' +
-            '<button onclick="update({view:\'login\'})" class="touch-active w-full bg-white hover:bg-gray-50 text-gray-800 font-semibold py-4 px-6 rounded-xl border border-gray-200 transition-all">Sign In</button>' +
+            '<button onclick="setView(\'signup\')" class="touch-active w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl shadow-lg">Get Started Free</button>' +
+            '<button onclick="setView(\'login\')" class="touch-active w-full bg-white hover:bg-gray-50 text-gray-800 font-semibold py-4 px-6 rounded-xl border border-gray-200">Sign In</button>' +
           '</div>' +
           '<div class="mt-12 grid grid-cols-4 gap-4 text-center">' +
             '<div><div class="text-2xl mb-1">🤖</div><p class="text-xs text-gray-600">AI Chef</p></div>' +
@@ -314,17 +320,17 @@
       function renderAuth(mode) {
         var isLogin = mode === 'login';
         return '<div class="min-h-screen flex flex-col p-6 fade-in">' +
-          '<button onclick="update({view:\'landing\',error:\'\'})" class="touch-active self-start text-gray-600 py-2">&larr; Back</button>' +
+          '<button onclick="setView(\'landing\')" class="touch-active self-start text-gray-600 py-2">← Back</button>' +
           '<div class="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">' +
             '<div class="text-5xl text-center mb-4">🍽️</div>' +
             '<h2 class="text-2xl font-bold text-center mb-6">' + (isLogin ? 'Welcome Back' : 'Create Account') + '</h2>' +
             (state.error ? '<div class="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm">' + state.error + '</div>' : '') +
             '<div class="space-y-4">' +
-              '<input type="email" placeholder="Email" value="' + escapeHtml(state.email) + '" oninput="update({email:this.value})" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
-              '<input type="password" placeholder="Password" value="' + escapeHtml(state.password) + '" oninput="update({password:this.value})" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
-              '<button onclick="' + (isLogin ? 'handleSignIn()' : 'handleSignUp()') + '" class="touch-active w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 rounded-xl shadow-lg transition-all' + (state.authLoading ? ' opacity-50' : '') + '">' + (state.authLoading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')) + '</button>' +
+              '<input type="email" id="email-input" placeholder="Email" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+              '<input type="password" id="password-input" placeholder="Password" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+              '<button onclick="' + (isLogin ? 'handleSignIn()' : 'handleSignUp()') + '" class="touch-active w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 rounded-xl shadow-lg' + (state.authLoading ? ' opacity-50' : '') + '">' + (state.authLoading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')) + '</button>' +
             '</div>' +
-            '<p class="text-center text-gray-600 mt-6">' + (isLogin ? "Don\'t have an account? " : "Already have an account? ") + '<button onclick="update({view:\'' + (isLogin ? 'signup' : 'login') + '\',error:\'\'})" class="touch-active text-orange-500 font-semibold">' + (isLogin ? 'Sign Up' : 'Sign In') + '</button></p>' +
+            '<p class="text-center text-gray-600 mt-6">' + (isLogin ? "Don\'t have an account? " : "Already have an account? ") + '<button onclick="setView(\'' + (isLogin ? 'signup' : 'login') + '\')" class="touch-active text-orange-500 font-semibold">' + (isLogin ? 'Sign Up' : 'Sign In') + '</button></p>' +
           '</div>' +
         '</div>';
       }
@@ -346,10 +352,10 @@
           '<main class="flex-1 overflow-auto pb-24">' + content + '</main>' +
           '<nav class="fixed bottom-0 left-0 right-0 glass border-t border-gray-200 px-4 py-2">' +
             '<div class="flex justify-around max-w-lg mx-auto">' +
-              '<button onclick="update({tab:\'plan\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'plan' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">📅</span><span class="text-xs font-medium">Plan</span></button>' +
-              '<button onclick="update({tab:\'pantry\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl relative ' + (state.tab === 'pantry' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🥫</span><span class="text-xs font-medium">Pantry</span>' + (expiringCount > 0 ? '<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">' + expiringCount + '</span>' : '') + '</button>' +
-              '<button onclick="update({tab:\'ai\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'ai' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🤖</span><span class="text-xs font-medium">AI Chef</span></button>' +
-              '<button onclick="update({tab:\'grocery\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'grocery' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🛒</span><span class="text-xs font-medium">Grocery</span></button>' +
+              '<button onclick="setTab(\'plan\')" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'plan' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">📅</span><span class="text-xs font-medium">Plan</span></button>' +
+              '<button onclick="setTab(\'pantry\')" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl relative ' + (state.tab === 'pantry' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🥫</span><span class="text-xs font-medium">Pantry</span>' + (expiringCount > 0 ? '<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">' + expiringCount + '</span>' : '') + '</button>' +
+              '<button onclick="setTab(\'ai\')" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'ai' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🤖</span><span class="text-xs font-medium">AI Chef</span></button>' +
+              '<button onclick="setTab(\'grocery\')" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'grocery' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🛒</span><span class="text-xs font-medium">Grocery</span></button>' +
             '</div>' +
           '</nav>' +
         '</div>';
@@ -360,13 +366,10 @@
         var types = ['breakfast', 'lunch', 'dinner'];
         var icons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
         
-        // Get expiring items for suggestion
         var expiring = getExpiringItems();
         var suggestionHtml = '';
         if (expiring.length > 0) {
-          suggestionHtml = '<div class="mb-4 p-4 expiring-soon rounded-xl">' +
-            '<div class="flex items-center gap-2 mb-2"><span>⚠️</span><span class="font-semibold text-amber-800">Use these soon!</span></div>' +
-            '<div class="flex flex-wrap gap-2">';
+          suggestionHtml = '<div class="mb-4 p-4 expiring-soon rounded-xl"><div class="flex items-center gap-2 mb-2"><span>⚠️</span><span class="font-semibold text-amber-800">Use these soon!</span></div><div class="flex flex-wrap gap-2">';
           for (var i = 0; i < Math.min(expiring.length, 5); i++) {
             suggestionHtml += '<span class="bg-white/50 px-3 py-1 rounded-full text-sm">' + expiring[i].name + '</span>';
           }
@@ -380,10 +383,7 @@
           for (var t = 0; t < types.length; t++) {
             var type = types[t];
             var meal = state.meals[day + '-' + type] || '';
-            html += '<div class="flex items-center justify-between p-3 bg-white/50 rounded-lg">' +
-              '<div class="flex items-center gap-2"><span>' + icons[type] + '</span><span class="text-sm capitalize text-gray-600">' + type + '</span></div>' +
-              '<button onclick="addMeal(\'' + day + '\',\'' + type + '\')" class="touch-active text-sm text-orange-500 font-medium px-3 py-1">' + (meal || '+ Add') + '</button>' +
-            '</div>';
+            html += '<div class="flex items-center justify-between p-3 bg-white/50 rounded-lg"><div class="flex items-center gap-2"><span>' + icons[type] + '</span><span class="text-sm capitalize text-gray-600">' + type + '</span></div><button onclick="addMeal(\'' + day + '\',\'' + type + '\')" class="touch-active text-sm text-orange-500 font-medium px-3 py-1">' + (meal || '+ Add') + '</button></div>';
           }
           html += '</div></div>';
         }
@@ -398,15 +398,11 @@
           pantry: { icon: '🥫', name: 'Pantry', items: [] }
         };
 
-        // Sort items into categories
         for (var i = 0; i < state.pantryItems.length; i++) {
           var item = state.pantryItems[i];
-          if (categories[item.category]) {
-            categories[item.category].items.push(item);
-          }
+          if (categories[item.category]) categories[item.category].items.push(item);
         }
 
-        // Sort by expiry date
         for (var cat in categories) {
           categories[cat].items.sort(function(a, b) {
             if (!a.expiry) return 1;
@@ -416,52 +412,36 @@
         }
 
         var html = '<div class="p-4">';
-        
-        // Header with add button
-        html += '<div class="flex items-center justify-between mb-4">' +
-          '<h2 class="text-xl font-bold text-gray-900">My Pantry</h2>' +
-          '<button onclick="update({showAddPantry:true})" class="touch-active bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold text-sm">+ Add Item</button>' +
-        '</div>';
+        html += '<div class="flex items-center justify-between mb-4"><h2 class="text-xl font-bold text-gray-900">My Pantry</h2><button onclick="showPantryModal()" class="touch-active bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold text-sm">+ Add Item</button></div>';
 
-        // Expiring soon alert
         var expiring = getExpiringItems();
         if (expiring.length > 0) {
-          html += '<div class="mb-4 p-4 expiring-soon rounded-xl">' +
-            '<div class="flex items-center gap-2 mb-2"><span>⚠️</span><span class="font-semibold text-amber-800">' + expiring.length + ' item' + (expiring.length !== 1 ? 's' : '') + ' expiring soon</span></div>' +
-            '<p class="text-sm text-amber-700">Check your fridge and use these items first!</p>' +
-          '</div>';
+          html += '<div class="mb-4 p-4 expiring-soon rounded-xl"><div class="flex items-center gap-2 mb-2"><span>⚠️</span><span class="font-semibold text-amber-800">' + expiring.length + ' item' + (expiring.length !== 1 ? 's' : '') + ' expiring soon</span></div><p class="text-sm text-amber-700">Check your fridge and use these items first!</p></div>';
         }
 
-        // Add item modal
+        // Modal
         if (state.showAddPantry) {
-          html += '<div class="fixed inset-0 bg-black/50 flex items-end justify-center z-50" onclick="if(event.target===this)update({showAddPantry:false})">' +
-            '<div class="bg-white w-full max-w-lg rounded-t-3xl p-6 fade-in">' +
-              '<div class="flex items-center justify-between mb-4">' +
-                '<h3 class="text-lg font-bold">Add to Pantry</h3>' +
-                '<button onclick="update({showAddPantry:false})" class="touch-active text-gray-500 text-2xl">&times;</button>' +
+          html += '<div class="modal-overlay" onclick="if(event.target===this)hidePantryModal()"><div class="modal-content fade-in">' +
+            '<div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold">Add to Pantry</h3><button onclick="hidePantryModal()" class="touch-active text-gray-500 text-2xl">×</button></div>' +
+            '<div class="space-y-4">' +
+              '<input type="text" id="pantry-name" placeholder="Item name (e.g., Milk)" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+              '<div class="grid grid-cols-3 gap-2">' +
+                '<label class="touch-active p-3 rounded-xl border-2 text-center cursor-pointer has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 border-gray-200"><input type="radio" name="pantry-cat" value="fridge" checked class="hidden"><div class="text-2xl">🧊</div><div class="text-xs mt-1">Fridge</div></label>' +
+                '<label class="touch-active p-3 rounded-xl border-2 text-center cursor-pointer has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 border-gray-200"><input type="radio" name="pantry-cat" value="freezer" class="hidden"><div class="text-2xl">❄️</div><div class="text-xs mt-1">Freezer</div></label>' +
+                '<label class="touch-active p-3 rounded-xl border-2 text-center cursor-pointer has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 border-gray-200"><input type="radio" name="pantry-cat" value="pantry" class="hidden"><div class="text-2xl">🥫</div><div class="text-xs mt-1">Pantry</div></label>' +
               '</div>' +
-              '<div class="space-y-4">' +
-                '<input type="text" placeholder="Item name (e.g., Milk)" value="' + escapeHtml(state.pantryForm.name) + '" oninput="state.pantryForm.name=this.value" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
-                '<div class="grid grid-cols-3 gap-2">' +
-                  '<button onclick="state.pantryForm.category=\'fridge\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'fridge' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">🧊</div><div class="text-xs mt-1">Fridge</div></button>' +
-                  '<button onclick="state.pantryForm.category=\'freezer\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'freezer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">❄️</div><div class="text-xs mt-1">Freezer</div></button>' +
-                  '<button onclick="state.pantryForm.category=\'pantry\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'pantry' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">🥫</div><div class="text-xs mt-1">Pantry</div></button>' +
-                '</div>' +
-                '<div class="grid grid-cols-2 gap-3">' +
-                  '<div><label class="text-sm text-gray-600 mb-1 block">Quantity</label><input type="text" placeholder="1" value="' + escapeHtml(state.pantryForm.quantity) + '" oninput="state.pantryForm.quantity=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
-                  '<div><label class="text-sm text-gray-600 mb-1 block">Expires</label><input type="date" value="' + escapeHtml(state.pantryForm.expiry) + '" oninput="state.pantryForm.expiry=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
-                '</div>' +
-                '<button onclick="addPantryItem()" class="touch-active w-full bg-orange-500 text-white py-4 rounded-xl font-semibold">Add to Pantry</button>' +
+              '<div class="grid grid-cols-2 gap-3">' +
+                '<div><label class="text-sm text-gray-600 mb-1 block">Quantity</label><input type="text" id="pantry-qty" placeholder="1" value="1" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
+                '<div><label class="text-sm text-gray-600 mb-1 block">Expires</label><input type="date" id="pantry-exp" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
               '</div>' +
+              '<button onclick="addPantryItem()" class="touch-active w-full bg-orange-500 text-white py-4 rounded-xl font-semibold">Add to Pantry</button>' +
             '</div>' +
-          '</div>';
+          '</div></div>';
         }
 
-        // Render categories
         for (var catKey in categories) {
           var category = categories[catKey];
-          html += '<div class="mb-6">' +
-            '<h3 class="flex items-center gap-2 font-semibold text-gray-900 mb-3"><span>' + category.icon + '</span>' + category.name + ' <span class="text-gray-400 font-normal">(' + category.items.length + ')</span></h3>';
+          html += '<div class="mb-6"><h3 class="flex items-center gap-2 font-semibold text-gray-900 mb-3"><span>' + category.icon + '</span>' + category.name + ' <span class="text-gray-400 font-normal">(' + category.items.length + ')</span></h3>';
           
           if (category.items.length === 0) {
             html += '<div class="glass rounded-xl p-4 text-center text-gray-500">No items in ' + category.name.toLowerCase() + '</div>';
@@ -472,42 +452,32 @@
               var status = getExpiryStatus(item.expiry);
               var statusClass = status === 'expired' ? 'expired' : (status === 'expiring' ? 'expiring-soon' : 'fresh');
               var expiryText = getExpiryText(item.expiry);
+              var escapedName = item.name.replace(/'/g, "\\'");
               
               html += '<div class="' + (item.expiry ? statusClass : 'glass') + ' rounded-xl p-3 flex items-center justify-between">' +
-                '<div class="flex-1">' +
-                  '<div class="font-medium">' + item.name + (item.quantity !== '1' ? ' <span class="text-gray-500">×' + item.quantity + '</span>' : '') + '</div>' +
-                  (expiryText ? '<div class="text-sm ' + (status === 'expired' ? 'text-red-600' : (status === 'expiring' ? 'text-amber-600' : 'text-green-600')) + '">' + expiryText + '</div>' : '') +
-                '</div>' +
-                '<div class="flex items-center gap-2">' +
-                  '<button onclick="movePantryToGrocery({id:' + item.id + ',name:\'' + item.name.replace(/'/g, "\\'") + '\'})" class="touch-active text-blue-500 px-2 py-1 text-sm" title="Add to grocery list">🛒</button>' +
-                  '<button onclick="removePantryItem(' + item.id + ')" class="touch-active text-red-500 px-2 py-1">✕</button>' +
-                '</div>' +
-              '</div>';
+                '<div class="flex-1"><div class="font-medium">' + item.name + (item.quantity !== '1' ? ' <span class="text-gray-500">×' + item.quantity + '</span>' : '') + '</div>' +
+                (expiryText ? '<div class="text-sm ' + (status === 'expired' ? 'text-red-600' : (status === 'expiring' ? 'text-amber-600' : 'text-green-600')) + '">' + expiryText + '</div>' : '') +
+                '</div><div class="flex items-center gap-2">' +
+                '<button onclick="movePantryToGrocery(' + item.id + ',\'' + escapedName + '\')" class="touch-active text-blue-500 px-2 py-1 text-sm">🛒</button>' +
+                '<button onclick="removePantryItem(' + item.id + ')" class="touch-active text-red-500 px-2 py-1">✕</button>' +
+                '</div></div>';
             }
             html += '</div>';
           }
           html += '</div>';
         }
-
         html += '</div>';
         return html;
       }
 
       function renderAI() {
-        // Include pantry context in AI prompt suggestion
         var pantryContext = '';
-        if (state.pantryItems.length > 0) {
-          var expiring = getExpiringItems();
-          if (expiring.length > 0) {
-            pantryContext = '<div class="mb-4 p-3 bg-amber-50 rounded-xl text-sm">' +
-              '<span class="font-medium">💡 Tip:</span> Ask the AI Chef for recipes using: ' +
-              expiring.slice(0, 3).map(function(i) { return i.name; }).join(', ') +
-            '</div>';
-          }
+        var expiring = getExpiringItems();
+        if (expiring.length > 0) {
+          pantryContext = '<div class="mb-4 p-3 bg-amber-50 rounded-xl text-sm"><span class="font-medium">💡 Tip:</span> Ask for recipes using: ' + expiring.slice(0, 3).map(function(i) { return i.name; }).join(', ') + '</div>';
         }
 
-        var html = '<div class="flex flex-col" style="height:calc(100vh - 140px)">';
-        html += '<div class="flex-1 p-4 overflow-y-auto">';
+        var html = '<div class="flex flex-col" style="height:calc(100vh - 140px)"><div class="flex-1 p-4 overflow-y-auto">';
         
         if (state.aiMessages.length === 0) {
           html += '<div class="text-center py-10"><div class="text-5xl mb-4">👨‍🍳</div><h3 class="text-lg font-semibold text-gray-900 mb-2">AI Chef</h3><p class="text-gray-600 text-sm mb-4">Ask me anything about cooking, recipes, or meal planning!</p>' + pantryContext + '</div>';
@@ -516,19 +486,14 @@
           for (var i = 0; i < state.aiMessages.length; i++) {
             var msg = state.aiMessages[i];
             var isUser = msg.role === 'user';
-            html += '<div class="flex ' + (isUser ? 'justify-end' : 'justify-start') + '">' +
-              '<div class="' + (isUser ? 'bg-orange-500 text-white' : 'bg-white text-gray-800') + ' rounded-2xl px-4 py-3 max-w-[80%] shadow-sm' + (msg.loading ? ' animate-pulse' : '') + '">' + msg.text + '</div>' +
-            '</div>';
+            html += '<div class="flex ' + (isUser ? 'justify-end' : 'justify-start') + '"><div class="' + (isUser ? 'bg-orange-500 text-white' : 'bg-white text-gray-800') + ' rounded-2xl px-4 py-3 max-w-[80%] shadow-sm' + (msg.loading ? ' animate-pulse' : '') + '">' + msg.text + '</div></div>';
           }
           html += '</div>';
         }
-        html += '</div>';
-        html += '<div class="p-4 glass border-t border-gray-200">' +
-          '<div class="flex gap-2">' +
-            '<input type="text" id="ai-input" placeholder="Ask the AI Chef..." value="' + escapeHtml(state.aiInput) + '" oninput="update({aiInput:this.value})" onkeypress="if(event.key===\'Enter\')sendMessage()" class="flex-1 p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
-            '<button onclick="sendMessage()" class="touch-active bg-orange-500 text-white px-5 py-3 rounded-xl font-semibold">Send</button>' +
-          '</div>' +
-        '</div></div>';
+        html += '</div><div class="p-4 glass border-t border-gray-200"><div class="flex gap-2">' +
+          '<input type="text" id="ai-input" placeholder="Ask the AI Chef..." onkeypress="if(event.key===\'Enter\')sendMessage()" class="flex-1 p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+          '<button onclick="sendMessage()" class="touch-active bg-orange-500 text-white px-5 py-3 rounded-xl font-semibold">Send</button>' +
+        '</div></div></div>';
         return html;
       }
 
@@ -536,19 +501,14 @@
         var uncheckedCount = state.groceryList.filter(function(item) { return !item.done; }).length;
         
         var html = '<div class="p-4">' +
-          '<div class="flex items-center justify-between mb-4">' +
-            '<h2 class="text-xl font-bold text-gray-900">Grocery List</h2>' +
-            '<span class="text-sm text-gray-500">' + uncheckedCount + ' items</span>' +
-          '</div>' +
+          '<div class="flex items-center justify-between mb-4"><h2 class="text-xl font-bold text-gray-900">Grocery List</h2><span class="text-sm text-gray-500">' + uncheckedCount + ' items</span></div>' +
           '<div class="flex gap-2 mb-4">' +
             '<input type="text" id="grocery-input" placeholder="Add item..." onkeypress="if(event.key===\'Enter\')addGroceryItem()" class="flex-1 p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
             '<button onclick="addGroceryItem()" class="touch-active bg-orange-500 text-white px-5 py-3 rounded-xl font-semibold">Add</button>' +
           '</div>';
         
         if (state.groceryList.length > 0) {
-          html += '<button onclick="orderOnInstacart()" class="touch-active w-full instacart-btn text-white font-semibold py-4 px-6 rounded-xl shadow-lg mb-4 flex items-center justify-center gap-3' + (state.instacartLoading ? ' opacity-50' : '') + '">' +
-            (state.instacartLoading ? '<span class="animate-pulse">Creating list...</span>' : '<span>🛒</span><span>Order on Instacart</span>') +
-          '</button>';
+          html += '<button onclick="orderOnInstacart()" class="touch-active w-full instacart-btn text-white font-semibold py-4 px-6 rounded-xl shadow-lg mb-4 flex items-center justify-center gap-3' + (state.instacartLoading ? ' opacity-50' : '') + '">' + (state.instacartLoading ? '<span class="animate-pulse">Creating list...</span>' : '<span>🛒</span><span>Order on Instacart</span>') + '</button>';
         }
         
         if (state.groceryList.length === 0) {
@@ -565,7 +525,6 @@
           }
           html += '</div>';
         }
-        
         html += '</div>';
         return html;
       }
