@@ -23,6 +23,10 @@
     .fade-in { animation: fadeIn 0.3s ease-out; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .animate-pulse { animation: pulse 1.5s infinite; }
+    .instacart-btn { background: linear-gradient(135deg, #43B02A 0%, #2D8C1F 100%); }
+    .expiring-soon { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; }
+    .expired { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 4px solid #ef4444; }
+    .fresh { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-left: 4px solid #10b981; }
   </style>
 </head>
 <body>
@@ -44,8 +48,12 @@
         authLoading: false,
         meals: {},
         groceryList: [],
+        pantryItems: [],
         aiMessages: [],
-        aiInput: ''
+        aiInput: '',
+        instacartLoading: false,
+        showAddPantry: false,
+        pantryForm: { name: '', category: 'fridge', expiry: '', quantity: '1' }
       };
 
       function update(changes) {
@@ -86,6 +94,7 @@
         });
       }
 
+      // AI CHEF
       function sendMessage() {
         var msg = state.aiInput.trim();
         if (!msg) return;
@@ -105,7 +114,7 @@
           throw new Error('API error');
         }).then(function(data) {
           var final = msgs.slice();
-          final.push({ role: 'bot', text: data.reply || data.message || 'Here is a suggestion based on your request.' });
+          final.push({ role: 'bot', text: data.reply || data.message || 'Here is a suggestion.' });
           update({ aiMessages: final });
         }).catch(function() {
           var fallback = [
@@ -120,6 +129,7 @@
         });
       }
 
+      // GROCERY LIST
       function addGroceryItem() {
         var input = document.getElementById('grocery-input');
         if (!input || !input.value.trim()) return;
@@ -143,6 +153,7 @@
         render();
       }
 
+      // MEAL PLAN
       function addMeal(day, type) {
         var meal = prompt('Enter meal for ' + day + ' ' + type + ':');
         if (meal) {
@@ -151,6 +162,104 @@
         }
       }
 
+      // PANTRY FUNCTIONS
+      function addPantryItem() {
+        var form = state.pantryForm;
+        if (!form.name.trim()) {
+          alert('Please enter an item name');
+          return;
+        }
+        
+        var newItem = {
+          id: Date.now(),
+          name: form.name.trim(),
+          category: form.category,
+          quantity: form.quantity || '1',
+          expiry: form.expiry || null,
+          addedDate: new Date().toISOString()
+        };
+        
+        state.pantryItems.push(newItem);
+        state.pantryForm = { name: '', category: 'fridge', expiry: '', quantity: '1' };
+        state.showAddPantry = false;
+        render();
+      }
+
+      function removePantryItem(id) {
+        state.pantryItems = state.pantryItems.filter(function(item) { return item.id !== id; });
+        render();
+      }
+
+      function movePantryToGrocery(item) {
+        state.groceryList.push({ id: Date.now(), name: item.name, done: false });
+        removePantryItem(item.id);
+      }
+
+      function getDaysUntilExpiry(expiryDate) {
+        if (!expiryDate) return null;
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        var expiry = new Date(expiryDate);
+        expiry.setHours(0, 0, 0, 0);
+        var diff = expiry - today;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+      }
+
+      function getExpiryStatus(expiryDate) {
+        var days = getDaysUntilExpiry(expiryDate);
+        if (days === null) return 'none';
+        if (days < 0) return 'expired';
+        if (days <= 3) return 'expiring';
+        return 'fresh';
+      }
+
+      function getExpiryText(expiryDate) {
+        var days = getDaysUntilExpiry(expiryDate);
+        if (days === null) return '';
+        if (days < 0) return 'Expired ' + Math.abs(days) + ' day' + (Math.abs(days) !== 1 ? 's' : '') + ' ago';
+        if (days === 0) return 'Expires today!';
+        if (days === 1) return 'Expires tomorrow';
+        if (days <= 3) return 'Expires in ' + days + ' days';
+        return 'Expires in ' + days + ' days';
+      }
+
+      function getExpiringItems() {
+        return state.pantryItems.filter(function(item) {
+          var status = getExpiryStatus(item.expiry);
+          return status === 'expired' || status === 'expiring';
+        });
+      }
+
+      // INSTACART
+      function orderOnInstacart() {
+        if (state.groceryList.length === 0) {
+          alert('Your grocery list is empty!');
+          return;
+        }
+        var itemsToOrder = state.groceryList.filter(function(item) { return !item.done; });
+        if (itemsToOrder.length === 0) {
+          alert('All items are checked off!');
+          return;
+        }
+        update({ instacartLoading: true });
+        var formattedItems = itemsToOrder.map(function(item) {
+          return { name: item.name, quantity: 1 };
+        });
+        fetch('/api/instacart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: formattedItems, title: 'MealMate Grocery List' })
+        }).then(function(res) { return res.json(); })
+        .then(function(data) {
+          update({ instacartLoading: false });
+          window.open(data.url || data.fallbackUrl || 'https://www.instacart.com', '_blank');
+        }).catch(function() {
+          update({ instacartLoading: false });
+          window.open('https://www.instacart.com', '_blank');
+        });
+      }
+
+      // EXPOSE FUNCTIONS
       window.update = update;
       window.handleSignUp = handleSignUp;
       window.handleSignIn = handleSignIn;
@@ -160,16 +269,19 @@
       window.toggleItem = toggleItem;
       window.removeItem = removeItem;
       window.addMeal = addMeal;
+      window.orderOnInstacart = orderOnInstacart;
+      window.addPantryItem = addPantryItem;
+      window.removePantryItem = removePantryItem;
+      window.movePantryToGrocery = movePantryToGrocery;
 
+      // RENDER FUNCTIONS
       function render() {
         var root = document.getElementById('root');
         if (!root) return;
-
         if (state.loading) {
           root.innerHTML = '<div class="min-h-screen flex items-center justify-center"><div class="text-center"><div class="text-6xl animate-pulse">🍽️</div><p class="mt-4 text-gray-600">Loading...</p></div></div>';
           return;
         }
-
         if (state.view === 'landing') { root.innerHTML = renderLanding(); }
         else if (state.view === 'login') { root.innerHTML = renderAuth('login'); }
         else if (state.view === 'signup') { root.innerHTML = renderAuth('signup'); }
@@ -185,10 +297,11 @@
             '<button onclick="update({view:\'signup\'})" class="touch-active w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transition-all">Get Started Free</button>' +
             '<button onclick="update({view:\'login\'})" class="touch-active w-full bg-white hover:bg-gray-50 text-gray-800 font-semibold py-4 px-6 rounded-xl border border-gray-200 transition-all">Sign In</button>' +
           '</div>' +
-          '<div class="mt-12 grid grid-cols-3 gap-6 text-center">' +
-            '<div><div class="text-3xl mb-2">🤖</div><p class="text-sm text-gray-600">AI Chef</p></div>' +
-            '<div><div class="text-3xl mb-2">📅</div><p class="text-sm text-gray-600">Meal Plans</p></div>' +
-            '<div><div class="text-3xl mb-2">🛒</div><p class="text-sm text-gray-600">Grocery Lists</p></div>' +
+          '<div class="mt-12 grid grid-cols-4 gap-4 text-center">' +
+            '<div><div class="text-2xl mb-1">🤖</div><p class="text-xs text-gray-600">AI Chef</p></div>' +
+            '<div><div class="text-2xl mb-1">📅</div><p class="text-xs text-gray-600">Meal Plans</p></div>' +
+            '<div><div class="text-2xl mb-1">🥫</div><p class="text-xs text-gray-600">Pantry</p></div>' +
+            '<div><div class="text-2xl mb-1">🛒</div><p class="text-xs text-gray-600">Instacart</p></div>' +
           '</div>' +
         '</div>';
       }
@@ -214,8 +327,11 @@
       function renderApp() {
         var content = '';
         if (state.tab === 'plan') content = renderMealPlan();
+        else if (state.tab === 'pantry') content = renderPantry();
         else if (state.tab === 'ai') content = renderAI();
         else if (state.tab === 'grocery') content = renderGrocery();
+
+        var expiringCount = getExpiringItems().length;
 
         return '<div class="min-h-screen flex flex-col">' +
           '<header class="glass border-b border-gray-200 px-4 py-3 flex items-center justify-between">' +
@@ -225,9 +341,10 @@
           '<main class="flex-1 overflow-auto pb-24">' + content + '</main>' +
           '<nav class="fixed bottom-0 left-0 right-0 glass border-t border-gray-200 px-4 py-2">' +
             '<div class="flex justify-around max-w-lg mx-auto">' +
-              '<button onclick="update({tab:\'plan\'})" class="touch-active flex flex-col items-center gap-1 px-6 py-2 rounded-xl ' + (state.tab === 'plan' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-xl">📅</span><span class="text-xs font-medium">Plan</span></button>' +
-              '<button onclick="update({tab:\'ai\'})" class="touch-active flex flex-col items-center gap-1 px-6 py-2 rounded-xl ' + (state.tab === 'ai' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-xl">🤖</span><span class="text-xs font-medium">AI Chef</span></button>' +
-              '<button onclick="update({tab:\'grocery\'})" class="touch-active flex flex-col items-center gap-1 px-6 py-2 rounded-xl ' + (state.tab === 'grocery' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-xl">🛒</span><span class="text-xs font-medium">Grocery</span></button>' +
+              '<button onclick="update({tab:\'plan\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'plan' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">📅</span><span class="text-xs font-medium">Plan</span></button>' +
+              '<button onclick="update({tab:\'pantry\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl relative ' + (state.tab === 'pantry' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🥫</span><span class="text-xs font-medium">Pantry</span>' + (expiringCount > 0 ? '<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">' + expiringCount + '</span>' : '') + '</button>' +
+              '<button onclick="update({tab:\'ai\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'ai' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🤖</span><span class="text-xs font-medium">AI Chef</span></button>' +
+              '<button onclick="update({tab:\'grocery\'})" class="touch-active flex flex-col items-center gap-1 px-4 py-2 rounded-xl ' + (state.tab === 'grocery' ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '"><span class="text-lg">🛒</span><span class="text-xs font-medium">Grocery</span></button>' +
             '</div>' +
           '</nav>' +
         '</div>';
@@ -237,7 +354,21 @@
         var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         var types = ['breakfast', 'lunch', 'dinner'];
         var icons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
-        var html = '<div class="p-4"><h2 class="text-xl font-bold text-gray-900 mb-4">Weekly Meal Plan</h2><div class="space-y-4">';
+        
+        // Get expiring items for suggestion
+        var expiring = getExpiringItems();
+        var suggestionHtml = '';
+        if (expiring.length > 0) {
+          suggestionHtml = '<div class="mb-4 p-4 expiring-soon rounded-xl">' +
+            '<div class="flex items-center gap-2 mb-2"><span>⚠️</span><span class="font-semibold text-amber-800">Use these soon!</span></div>' +
+            '<div class="flex flex-wrap gap-2">';
+          for (var i = 0; i < Math.min(expiring.length, 5); i++) {
+            suggestionHtml += '<span class="bg-white/50 px-3 py-1 rounded-full text-sm">' + expiring[i].name + '</span>';
+          }
+          suggestionHtml += '</div></div>';
+        }
+
+        var html = '<div class="p-4">' + suggestionHtml + '<h2 class="text-xl font-bold text-gray-900 mb-4">Weekly Meal Plan</h2><div class="space-y-4">';
         for (var d = 0; d < days.length; d++) {
           var day = days[d];
           html += '<div class="glass rounded-xl p-4 shadow-sm"><h3 class="font-semibold text-gray-900 mb-3">' + day + '</h3><div class="space-y-2">';
@@ -255,13 +386,128 @@
         return html;
       }
 
+      function renderPantry() {
+        var categories = {
+          fridge: { icon: '🧊', name: 'Fridge', items: [] },
+          freezer: { icon: '❄️', name: 'Freezer', items: [] },
+          pantry: { icon: '🥫', name: 'Pantry', items: [] }
+        };
+
+        // Sort items into categories
+        for (var i = 0; i < state.pantryItems.length; i++) {
+          var item = state.pantryItems[i];
+          if (categories[item.category]) {
+            categories[item.category].items.push(item);
+          }
+        }
+
+        // Sort by expiry date
+        for (var cat in categories) {
+          categories[cat].items.sort(function(a, b) {
+            if (!a.expiry) return 1;
+            if (!b.expiry) return -1;
+            return new Date(a.expiry) - new Date(b.expiry);
+          });
+        }
+
+        var html = '<div class="p-4">';
+        
+        // Header with add button
+        html += '<div class="flex items-center justify-between mb-4">' +
+          '<h2 class="text-xl font-bold text-gray-900">My Pantry</h2>' +
+          '<button onclick="update({showAddPantry:true})" class="touch-active bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold text-sm">+ Add Item</button>' +
+        '</div>';
+
+        // Expiring soon alert
+        var expiring = getExpiringItems();
+        if (expiring.length > 0) {
+          html += '<div class="mb-4 p-4 expiring-soon rounded-xl">' +
+            '<div class="flex items-center gap-2 mb-2"><span>⚠️</span><span class="font-semibold text-amber-800">' + expiring.length + ' item' + (expiring.length !== 1 ? 's' : '') + ' expiring soon</span></div>' +
+            '<p class="text-sm text-amber-700">Check your fridge and use these items first!</p>' +
+          '</div>';
+        }
+
+        // Add item modal
+        if (state.showAddPantry) {
+          html += '<div class="fixed inset-0 bg-black/50 flex items-end justify-center z-50" onclick="if(event.target===this)update({showAddPantry:false})">' +
+            '<div class="bg-white w-full max-w-lg rounded-t-3xl p-6 fade-in">' +
+              '<div class="flex items-center justify-between mb-4">' +
+                '<h3 class="text-lg font-bold">Add to Pantry</h3>' +
+                '<button onclick="update({showAddPantry:false})" class="touch-active text-gray-500 text-2xl">&times;</button>' +
+              '</div>' +
+              '<div class="space-y-4">' +
+                '<input type="text" placeholder="Item name (e.g., Milk)" value="' + state.pantryForm.name + '" oninput="state.pantryForm.name=this.value" class="w-full p-4 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
+                '<div class="grid grid-cols-3 gap-2">' +
+                  '<button onclick="state.pantryForm.category=\'fridge\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'fridge' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">🧊</div><div class="text-xs mt-1">Fridge</div></button>' +
+                  '<button onclick="state.pantryForm.category=\'freezer\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'freezer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">❄️</div><div class="text-xs mt-1">Freezer</div></button>' +
+                  '<button onclick="state.pantryForm.category=\'pantry\';render()" class="touch-active p-3 rounded-xl border-2 text-center ' + (state.pantryForm.category === 'pantry' ? 'border-orange-500 bg-orange-50' : 'border-gray-200') + '"><div class="text-2xl">🥫</div><div class="text-xs mt-1">Pantry</div></button>' +
+                '</div>' +
+                '<div class="grid grid-cols-2 gap-3">' +
+                  '<div><label class="text-sm text-gray-600 mb-1 block">Quantity</label><input type="text" placeholder="1" value="' + state.pantryForm.quantity + '" oninput="state.pantryForm.quantity=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
+                  '<div><label class="text-sm text-gray-600 mb-1 block">Expires</label><input type="date" value="' + state.pantryForm.expiry + '" oninput="state.pantryForm.expiry=this.value" class="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none"></div>' +
+                '</div>' +
+                '<button onclick="addPantryItem()" class="touch-active w-full bg-orange-500 text-white py-4 rounded-xl font-semibold">Add to Pantry</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        // Render categories
+        for (var catKey in categories) {
+          var category = categories[catKey];
+          html += '<div class="mb-6">' +
+            '<h3 class="flex items-center gap-2 font-semibold text-gray-900 mb-3"><span>' + category.icon + '</span>' + category.name + ' <span class="text-gray-400 font-normal">(' + category.items.length + ')</span></h3>';
+          
+          if (category.items.length === 0) {
+            html += '<div class="glass rounded-xl p-4 text-center text-gray-500">No items in ' + category.name.toLowerCase() + '</div>';
+          } else {
+            html += '<div class="space-y-2">';
+            for (var j = 0; j < category.items.length; j++) {
+              var item = category.items[j];
+              var status = getExpiryStatus(item.expiry);
+              var statusClass = status === 'expired' ? 'expired' : (status === 'expiring' ? 'expiring-soon' : 'fresh');
+              var expiryText = getExpiryText(item.expiry);
+              
+              html += '<div class="' + (item.expiry ? statusClass : 'glass') + ' rounded-xl p-3 flex items-center justify-between">' +
+                '<div class="flex-1">' +
+                  '<div class="font-medium">' + item.name + (item.quantity !== '1' ? ' <span class="text-gray-500">×' + item.quantity + '</span>' : '') + '</div>' +
+                  (expiryText ? '<div class="text-sm ' + (status === 'expired' ? 'text-red-600' : (status === 'expiring' ? 'text-amber-600' : 'text-green-600')) + '">' + expiryText + '</div>' : '') +
+                '</div>' +
+                '<div class="flex items-center gap-2">' +
+                  '<button onclick="movePantryToGrocery({id:' + item.id + ',name:\'' + item.name.replace(/'/g, "\\'") + '\'})" class="touch-active text-blue-500 px-2 py-1 text-sm" title="Add to grocery list">🛒</button>' +
+                  '<button onclick="removePantryItem(' + item.id + ')" class="touch-active text-red-500 px-2 py-1">✕</button>' +
+                '</div>' +
+              '</div>';
+            }
+            html += '</div>';
+          }
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
       function renderAI() {
+        // Include pantry context in AI prompt suggestion
+        var pantryContext = '';
+        if (state.pantryItems.length > 0) {
+          var expiring = getExpiringItems();
+          if (expiring.length > 0) {
+            pantryContext = '<div class="mb-4 p-3 bg-amber-50 rounded-xl text-sm">' +
+              '<span class="font-medium">💡 Tip:</span> Ask the AI Chef for recipes using: ' +
+              expiring.slice(0, 3).map(function(i) { return i.name; }).join(', ') +
+            '</div>';
+          }
+        }
+
         var html = '<div class="flex flex-col" style="height:calc(100vh - 140px)">';
         html += '<div class="flex-1 p-4 overflow-y-auto">';
+        
         if (state.aiMessages.length === 0) {
-          html += '<div class="text-center py-10"><div class="text-5xl mb-4">👨‍🍳</div><h3 class="text-lg font-semibold text-gray-900 mb-2">AI Chef</h3><p class="text-gray-600 text-sm">Ask me anything about cooking, recipes, or meal planning!</p></div>';
+          html += '<div class="text-center py-10"><div class="text-5xl mb-4">👨‍🍳</div><h3 class="text-lg font-semibold text-gray-900 mb-2">AI Chef</h3><p class="text-gray-600 text-sm mb-4">Ask me anything about cooking, recipes, or meal planning!</p>' + pantryContext + '</div>';
         } else {
-          html += '<div class="space-y-4">';
+          html += pantryContext + '<div class="space-y-4">';
           for (var i = 0; i < state.aiMessages.length; i++) {
             var msg = state.aiMessages[i];
             var isUser = msg.role === 'user';
@@ -282,14 +528,26 @@
       }
 
       function renderGrocery() {
+        var uncheckedCount = state.groceryList.filter(function(item) { return !item.done; }).length;
+        
         var html = '<div class="p-4">' +
-          '<h2 class="text-xl font-bold text-gray-900 mb-4">Grocery List</h2>' +
+          '<div class="flex items-center justify-between mb-4">' +
+            '<h2 class="text-xl font-bold text-gray-900">Grocery List</h2>' +
+            '<span class="text-sm text-gray-500">' + uncheckedCount + ' items</span>' +
+          '</div>' +
           '<div class="flex gap-2 mb-4">' +
             '<input type="text" id="grocery-input" placeholder="Add item..." onkeypress="if(event.key===\'Enter\')addGroceryItem()" class="flex-1 p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none">' +
             '<button onclick="addGroceryItem()" class="touch-active bg-orange-500 text-white px-5 py-3 rounded-xl font-semibold">Add</button>' +
           '</div>';
+        
+        if (state.groceryList.length > 0) {
+          html += '<button onclick="orderOnInstacart()" class="touch-active w-full instacart-btn text-white font-semibold py-4 px-6 rounded-xl shadow-lg mb-4 flex items-center justify-center gap-3' + (state.instacartLoading ? ' opacity-50' : '') + '">' +
+            (state.instacartLoading ? '<span class="animate-pulse">Creating list...</span>' : '<span>🛒</span><span>Order on Instacart</span>') +
+          '</button>';
+        }
+        
         if (state.groceryList.length === 0) {
-          html += '<div class="text-center py-10 text-gray-500"><div class="text-4xl mb-2">🛒</div><p>Your grocery list is empty</p></div>';
+          html += '<div class="text-center py-10 text-gray-500"><div class="text-4xl mb-2">🛒</div><p>Your grocery list is empty</p><p class="text-sm mt-2">Add items and order them on Instacart!</p></div>';
         } else {
           html += '<div class="space-y-2">';
           for (var i = 0; i < state.groceryList.length; i++) {
@@ -302,6 +560,7 @@
           }
           html += '</div>';
         }
+        
         html += '</div>';
         return html;
       }
