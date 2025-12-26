@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#f97316">
-  <meta name="description" content="MealMate - AI-Powered Meal Planning with Smart Pantry Tracking">
-  <title>MealMate - Smart Meal Planning</title>
+  <meta name="description" content="BestMealMate - AI-Powered Meal Planning with Smart Pantry Tracking">
+  <title>BestMealMate - Smart Meal Planning</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -579,7 +579,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             items: items.map(function(i) { return { name: i.name, quantity: 1 }; }),
-            title: 'MealMate List'
+            title: 'BestMealMate List'
           })
         }).then(function(res) { return res.json(); })
         .then(function(data) {
@@ -628,7 +628,7 @@
         return '<div class="min-h-screen flex items-center justify-center">' +
           '<div class="text-center">' +
             '<div class="text-7xl animate-bounce">🍽️</div>' +
-            '<p class="mt-4 text-gray-600 font-medium">Loading MealMate...</p>' +
+            '<p class="mt-4 text-gray-600 font-medium">Loading BestMealMate...</p>' +
           '</div>' +
         '</div>';
       }
@@ -638,7 +638,7 @@
           // Hero Section
           '<div class="flex-1 flex flex-col items-center justify-center p-6 text-center fade-in">' +
             '<div class="text-8xl mb-4">🍽️</div>' +
-            '<h1 class="text-4xl font-extrabold text-gray-900 mb-2">MealMate</h1>' +
+            '<h1 class="text-4xl font-extrabold text-gray-900 mb-2">BestMealMate</h1>' +
             '<p class="text-lg text-gray-600 mb-2">Smart AI-Powered Meal Planning</p>' +
             '<p class="text-sm text-gray-500 mb-8">Save time • Reduce waste • Eat better</p>' +
             
@@ -692,7 +692,7 @@
         return '<div class="min-h-screen flex flex-col p-6 fade-in">' +
           '<div class="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full text-center">' +
             '<div class="text-7xl mb-4">🎉</div>' +
-            '<h2 class="text-2xl font-bold mb-2">Welcome to MealMate!</h2>' +
+            '<h2 class="text-2xl font-bold mb-2">Welcome to BestMealMate!</h2>' +
             '<p class="text-gray-600 mb-8">Your account is ready. Let\'s start planning smarter meals!</p>' +
             
             '<div class="space-y-3 text-left mb-8">' +
@@ -788,7 +788,7 @@
           '<header class="glass border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">' +
             '<div class="flex items-center gap-2">' +
               '<span class="text-2xl">🍽️</span>' +
-              '<span class="font-bold text-gray-900">MealMate</span>' +
+              '<span class="font-bold text-gray-900">BestMealMate</span>' +
             '</div>' +
             '<button onclick="showSettings()" class="touch-active w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">' +
               '<span class="text-lg">⚙️</span>' +
