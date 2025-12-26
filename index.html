@@ -38,7 +38,15 @@
     (function() {
       var SUPABASE_URL = 'https://lrtcvfpxamjxseyykenv.supabase.co';
       var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxydGN2ZnB4YW1qeHNleXlrZW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5OTQ2ODMsImV4cCI6MjA1MDU3MDY4M30.xKQ1FgqiJcfEMwFj7GcNe-xt3JiX3GKxWV6IT0C3RtA';
-      var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      
+      var supabase = null;
+      try {
+        if (window.supabase && window.supabase.createClient) {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+      } catch(e) {
+        console.error('Supabase init error:', e);
+      }
 
       var state = {
         loading: true,
@@ -71,6 +79,12 @@
       }
 
       function checkAuth() {
+        if (!supabase) {
+          state.loading = false;
+          state.view = 'landing';
+          render();
+          return;
+        }
         supabase.auth.getUser().then(function(result) {
           var user = result.data ? result.data.user : null;
           state.loading = false;
@@ -79,6 +93,7 @@
           render();
         }).catch(function() {
           state.loading = false;
+          state.view = 'landing';
           render();
         });
       }
@@ -87,6 +102,7 @@
         var email = document.getElementById('email-input').value;
         var password = document.getElementById('password-input').value;
         if (!email || !password) { state.error = 'Please fill in all fields'; render(); return; }
+        if (!supabase) { state.error = 'Connection error. Please refresh and try again.'; render(); return; }
         state.authLoading = true;
         state.error = '';
         render();
@@ -102,6 +118,7 @@
         var email = document.getElementById('email-input').value;
         var password = document.getElementById('password-input').value;
         if (!email || !password) { state.error = 'Please fill in all fields'; render(); return; }
+        if (!supabase) { state.error = 'Connection error. Please refresh and try again.'; render(); return; }
         state.authLoading = true;
         state.error = '';
         render();
@@ -114,11 +131,17 @@
       }
 
       function handleSignOut() {
-        supabase.auth.signOut().then(function() {
+        if (supabase) {
+          supabase.auth.signOut().then(function() {
+            state.user = null;
+            state.view = 'landing';
+            render();
+          });
+        } else {
           state.user = null;
           state.view = 'landing';
           render();
-        });
+        }
       }
 
       function setView(v) { state.view = v; state.error = ''; render(); }
@@ -529,7 +552,34 @@
         return html;
       }
 
-      checkAuth();
+      // Wait for Supabase to load, then check auth
+      function init() {
+        var attempts = 0;
+        var maxAttempts = 10;
+        
+        function tryInit() {
+          attempts++;
+          if (window.supabase && window.supabase.createClient) {
+            try {
+              supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } catch(e) {
+              console.error('Supabase init error:', e);
+            }
+            checkAuth();
+          } else if (attempts < maxAttempts) {
+            setTimeout(tryInit, 200);
+          } else {
+            // Give up, proceed without auth
+            state.loading = false;
+            state.view = 'landing';
+            render();
+          }
+        }
+        
+        tryInit();
+      }
+
+      init();
     })();
   </script>
 </body>
