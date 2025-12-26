@@ -1,7 +1,14 @@
 {
   "name": "mealmate",
   "version": "1.0.0",
-  "dependencies": {
-    "stripe": "^14.10.0"
+  "description": "AI-Powered Meal Planning App",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build required'",
+    "start": "vercel dev"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18"
   }
 }
