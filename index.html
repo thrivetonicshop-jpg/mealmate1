@@ -525,11 +525,15 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 <input type="file" id="gallery-input" accept="image/*" style="display:none">
 <canvas id="capture-canvas" style="display:none"></canvas>
 <div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-message"></span></div>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ===== SUPABASE CONFIG =====
 const SUPABASE_URL = 'https://prsyibapqrzonggfhhey.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_MW_y7aXx8pJjRJELGGTomg_51DMdhbZ';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByc3lpYmFwcXJ6b25nZ2ZoaGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxOTQ2MDYsImV4cCI6MjA1MDc3MDYwNn0.BewW_cFpPLCYlKOKsNHMPvwHIrLQnUBSU7_FhOPJtlM';
+let supabase = null;
+try { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.log('Supabase init error:', e); }
+
+// Helper function
+const $ = id => document.getElementById(id);
 
 // ===== STATE =====
 let API_KEY = localStorage.getItem('mealmate_api_key') || '';
@@ -576,6 +580,7 @@ function isToday(d) { const t = new Date(); return d.getDate() === t.getDate() &
 
 // ===== SUPABASE AUTH & SYNC =====
 async function checkAuth() {
+    if (!supabase) return;
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) { state.user = user; updateUserUI(); await loadFromCloud(); }
@@ -583,6 +588,7 @@ async function checkAuth() {
 }
 
 async function signIn(email, password) {
+    if (!supabase) throw new Error('Database not available');
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     state.user = data.user;
@@ -592,12 +598,14 @@ async function signIn(email, password) {
 }
 
 async function signUp(email, password) {
+    if (!supabase) throw new Error('Database not available');
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     return data;
 }
 
 async function signOut() {
+    if (!supabase) return;
     await supabase.auth.signOut();
     state.user = null;
     updateUserUI();
@@ -626,15 +634,15 @@ function updateUserUI() {
 }
 
 async function loadFromCloud() {
-    if (!state.user) return;
+    if (!state.user || !supabase) return;
     showSyncStatus('syncing');
     try {
         // Load grocery list (JSONB)
-        const { data: groceryData } = await supabase.from('grocery_lists').select('items').eq('user_id', state.user.id).single();
+        const { data: groceryData } = await supabase.from('grocery_lists').select('items').eq('user_id', state.user.id).maybeSingle();
         if (groceryData?.items) state.grocery = groceryData.items;
         
         // Load meal plan (JSONB)
-        const { data: planData } = await supabase.from('meal_plans').select('plan').eq('user_id', state.user.id).single();
+        const { data: planData } = await supabase.from('meal_plans').select('plan').eq('user_id', state.user.id).maybeSingle();
         if (planData?.plan) state.mealPlan = planData.plan;
         
         // Load pantry
@@ -652,7 +660,7 @@ async function loadFromCloud() {
 }
 
 async function syncToCloud() {
-    if (!state.user) return;
+    if (!state.user || !supabase) return;
     showSyncStatus('syncing');
     try {
         // Sync grocery list as JSONB
