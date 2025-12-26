@@ -413,7 +413,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
     <div class="nav-item" data-view="grocery"><span class="icon">🛒</span><span class="label">Grocery</span><span class="nav-badge" id="nav-grocery-badge" style="display:none">0</span></div>
     <div class="nav-item" data-view="recipes"><span class="icon">📖</span><span class="label">Recipes</span></div>
 </nav>
-<div class="user-menu" id="user-menu"><div class="user-menu-email" id="user-menu-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="750006100735100d14180519105b161a18">[email&#160;protected]</a></div><div class="user-menu-item" onclick="syncNow()">🔄 Sync Now</div><div class="user-menu-item" onclick="openLegal('settings')">⚙️ Settings</div><div class="user-menu-item danger" onclick="signOut()">🚪 Sign Out</div></div>
+<div class="user-menu" id="user-menu"><div class="user-menu-email" id="user-menu-email">user@example.com</div><div class="user-menu-item" onclick="syncNow()">🔄 Sync Now</div><div class="user-menu-item" onclick="openLegal('settings')">⚙️ Settings</div><div class="user-menu-item danger" onclick="signOut()">🚪 Sign Out</div></div>
 
 <!-- Meal Picker -->
 <div class="results-bg" id="picker-bg"></div>
@@ -508,7 +508,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
     </div>
     <div class="version-info">Best Meal Mate v4.0.0</div>
 </div>
-<div class="legal-modal" id="privacy-modal"><div class="legal-header"><button class="legal-back" onclick="closeLegal()">←</button><span class="legal-title">Privacy Policy</span></div><div class="legal-content"><h2>Data We Collect</h2><p>Pantry items, grocery lists, meal plans, and email for account sync.</p><h2>Storage</h2><p>Data syncs to Supabase cloud when logged in.</p><h2>Contact</h2><p><a href="/cdn-cgi/l/email-protection#14767167607971757879756071547379757d783a777b79"><span class="__cf_email__" data-cfemail="e88a8d9b9c858d898485899c8da88f85898184c68b8785">[email&#160;protected]</span></a></p></div></div>
+<div class="legal-modal" id="privacy-modal"><div class="legal-header"><button class="legal-back" onclick="closeLegal()">←</button><span class="legal-title">Privacy Policy</span></div><div class="legal-content"><h2>Data We Collect</h2><p>Pantry items, grocery lists, meal plans, and email for account sync.</p><h2>Storage</h2><p>Data syncs to Supabase cloud when logged in.</p><h2>Contact</h2><p><a href="mailto:bestmealmate@gmail.com" style="color:var(--green)">bestmealmate@gmail.com</a></p></div></div>
 <div class="legal-modal" id="terms-modal"><div class="legal-header"><button class="legal-back" onclick="closeLegal()">←</button><span class="legal-title">Terms of Service</span></div><div class="legal-content"><h2>Acceptance</h2><p>By using Best Meal Mate, you agree to these terms.</p><h2>Food Safety</h2><p>Use your own judgment for food safety. Expiration dates are estimates.</p></div></div>
 <div class="legal-modal" id="api-modal"><div class="legal-header"><button class="legal-back" onclick="closeLegal()">←</button><span class="legal-title">API Key</span></div><div class="legal-content"><h2>Claude API Key</h2><p>For AI scanning, add your key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p><div style="margin:20px 0"><input type="password" id="api-key-settings" placeholder="sk-ant-api03-..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);margin-bottom:12px"><button onclick="saveApiKey()" style="width:100%;background:var(--green);border:none;border-radius:8px;padding:14px;color:#fff;font-weight:600;cursor:pointer">Save Key</button></div><p id="api-key-status" style="color:var(--muted)">No API key configured</p></div></div>
 
@@ -1056,27 +1056,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('settings-account').addEventListener('click', () => { closeLegal(); if (state.user) document.getElementById('user-menu').classList.toggle('active'); else openAuth(); });
     document.addEventListener('click', (e) => { if (!e.target.closest('#user-menu') && !e.target.closest('#user-btn')) document.getElementById('user-menu').classList.remove('active'); });
     
-    // Logo & API banner
-    $('logo').onclick = handleLogo;
+    // Logo & API banner (using class selector for logo)
+    document.querySelector('.logo')?.addEventListener('click', handleLogo);
     $('save-api-key').onclick = saveKeyBanner;
     $('dismiss-banner').onclick = () => $('api-banner').classList.remove('show');
     $('api-key-input').onkeypress = e => { if (e.key === 'Enter') $('save-api-key').click(); };
-    
-    // Settings modals
-    $('settings-back').onclick = closeLegal;
-    $('privacy-back').onclick = closeLegal;
-    $('terms-back').onclick = closeLegal;
-    $('api-back').onclick = closeLegal;
-    $('settings-api').onclick = () => openLegal('api');
-    $('settings-clear').onclick = clearAllData;
-    $('settings-privacy').onclick = () => openLegal('privacy');
-    $('settings-terms').onclick = () => openLegal('terms');
-    $('save-api-key-settings').onclick = saveApiKey;
-    
-    // User menu
-    $('sync-now-btn').onclick = async () => { $('user-menu').classList.remove('active'); await syncToCloud(); toast('Synced ☁️'); };
-    $('menu-settings').onclick = () => { $('user-menu').classList.remove('active'); openLegal('settings'); };
-    $('sign-out-btn').onclick = signOut;
     
     // Onboarding
     $('ob-next').onclick = nextOb;
