@@ -198,6 +198,10 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .category-header .icon{font-size:20px}
 .category-header .title{font-size:16px;font-weight:600}
 .category-header .count{font-size:13px;color:var(--muted);margin-left:auto}
+.recipe-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:16px;scrollbar-width:none}
+.recipe-tabs::-webkit-scrollbar{display:none}
+.recipe-tab{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;background:var(--card);border:1px solid var(--border);color:var(--muted)}
+.recipe-tab.active{background:var(--green);border-color:var(--green);color:#fff}
 /* Legal/Settings Styles */
 .legal-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;overflow-y:auto}
 .legal-modal.active{display:flex}
@@ -260,7 +264,17 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
         <div id="pantry-content"></div>
     </div>
     <div class="view" id="recipes-view">
-        <div class="greeting"><h1 class="greeting-main">Recipes</h1></div>
+        <div class="greeting"><h1 class="greeting-main">Recipes</h1><p style="color:var(--muted);font-size:14px;margin-top:4px">55 recipes</p></div>
+        <div class="recipe-tabs" id="recipe-tabs">
+            <div class="recipe-tab active" data-filter="all">All</div>
+            <div class="recipe-tab" data-filter="breakfast">🍳 Breakfast</div>
+            <div class="recipe-tab" data-filter="lunch">🥪 Lunch</div>
+            <div class="recipe-tab" data-filter="dinner">🍽️ Dinner</div>
+            <div class="recipe-tab" data-filter="quick">⚡ Quick</div>
+            <div class="recipe-tab" data-filter="healthy">🥗 Healthy</div>
+            <div class="recipe-tab" data-filter="vegetarian">🥬 Vegetarian</div>
+            <div class="recipe-tab" data-filter="comfort">🍕 Comfort</div>
+        </div>
         <div id="recipe-list"></div>
     </div>
     <div class="view" id="grocery-view">
@@ -327,7 +341,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
         </div>
         <div class="settings-item" onclick="window.open('mailto:bestmealmate@gmail.com')">
             <span class="icon">📧</span>
-            <div class="info"><div class="label">Contact Us</div><div class="desc">bestmealmate@gmail.com</div></div>
+            <div class="info"><div class="label">Contact Us</div><div class="desc"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c4a6a1b7b0a9a1a5a8a9a5b0a184a3a9a5ada8eaa7aba9">[email&#160;protected]</a></div></div>
             <span class="arrow">›</span>
         </div>
     </div>
@@ -397,7 +411,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
         <p>We may update this policy periodically. Changes will be posted in the app.</p>
         
         <h2>10. Contact Us</h2>
-        <p>Questions? Email us at <a href="mailto:bestmealmate@gmail.com">bestmealmate@gmail.com</a></p>
+        <p>Questions? Email us at <a href="/cdn-cgi/l/email-protection#c6a4a3b5b2aba3a7aaaba7b2a386a1aba7afaae8a5a9ab"><span class="__cf_email__" data-cfemail="e1838492958c84808d8c809584a1868c80888dcf828e8c">[email&#160;protected]</span></a></p>
     </div>
 </div>
 
@@ -474,7 +488,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
         <p>These terms are governed by the laws of the United States.</p>
         
         <h2>12. Contact</h2>
-        <p>Questions? Contact us at <a href="mailto:bestmealmate@gmail.com">bestmealmate@gmail.com</a></p>
+        <p>Questions? Contact us at <a href="/cdn-cgi/l/email-protection#b8daddcbccd5ddd9d4d5d9ccddf8dfd5d9d1d496dbd7d5"><span class="__cf_email__" data-cfemail="c0a2a5b3b4ada5a1acada1b4a580a7ada1a9aceea3afad">[email&#160;protected]</span></a></p>
     </div>
 </div>
 
@@ -530,7 +544,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
         </ul>
         
         <h2>6. Contact</h2>
-        <p>Questions? Email <a href="mailto:bestmealmate@gmail.com">bestmealmate@gmail.com</a></p>
+        <p>Questions? Email <a href="/cdn-cgi/l/email-protection#d5b7b0a6a1b8b0b4b9b8b4a1b095b2b8b4bcb9fbb6bab8"><span class="__cf_email__" data-cfemail="4a282f393e272f2b26272b3e2f0a2d272b232664292527">[email&#160;protected]</span></a></p>
     </div>
 </div>
 
@@ -653,18 +667,69 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 <input type="file" id="gallery-input" accept="image/*" style="display:none">
 <canvas id="capture-canvas" style="display:none"></canvas>
 <div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-message"></span></div>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 let API_KEY=localStorage.getItem('mealmate_api_key')||'';
 const state={view:'home',stream:null,active:false,facing:'environment',detected:[],pantry:JSON.parse(localStorage.getItem('pantry')||'[]'),grocery:JSON.parse(localStorage.getItem('grocery')||'[]'),obStep:0};
 const recipes=[
-{id:1,name:'Classic Omelette',emoji:'🍳',time:10,cal:280,ings:[{n:'Eggs',e:'🥚',a:'3'},{n:'Butter',e:'🧈',a:'1 tbsp'},{n:'Cheese',e:'🧀',a:'¼ cup'}],steps:['Whisk eggs in bowl.','Heat butter in pan.','Pour eggs, let set 30 sec.','Push edges, tilt pan.','Add cheese, fold in half.']},
-{id:2,name:'Avocado Toast',emoji:'🥑',time:5,cal:320,ings:[{n:'Bread',e:'🍞',a:'2 slices'},{n:'Avocado',e:'🥑',a:'1'},{n:'Eggs',e:'🥚',a:'1'}],steps:['Toast bread.','Mash avocado with salt.','Spread on toast.','Top with fried egg.']},
-{id:3,name:'Chicken Stir Fry',emoji:'🍗',time:25,cal:420,ings:[{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Vegetables',e:'🥬',a:'2 cups'},{n:'Soy Sauce',e:'🫙',a:'3 tbsp'}],steps:['Cut chicken into pieces.','Stir fry chicken 5 min.','Add vegetables 3-4 min.','Add soy sauce, toss.']},
-{id:4,name:'Pasta Carbonara',emoji:'🍝',time:20,cal:580,ings:[{n:'Pasta',e:'🍝',a:'8 oz'},{n:'Eggs',e:'🥚',a:'2'},{n:'Cheese',e:'🧀',a:'½ cup'},{n:'Bacon',e:'🥓',a:'4 slices'}],steps:['Cook pasta.','Fry bacon until crispy.','Whisk eggs with cheese.','Drain pasta, add to bacon.','Add egg mixture off heat, toss.']},
-{id:5,name:'Smoothie Bowl',emoji:'🫐',time:5,cal:280,ings:[{n:'Banana',e:'🍌',a:'1 frozen'},{n:'Berries',e:'🫐',a:'1 cup'},{n:'Yogurt',e:'🥛',a:'½ cup'}],steps:['Blend all ingredients until thick.','Pour into bowl.','Top with granola and fruit.']},
-{id:6,name:'Grilled Cheese',emoji:'🧀',time:10,cal:450,ings:[{n:'Bread',e:'🍞',a:'2 slices'},{n:'Cheese',e:'🧀',a:'2 slices'},{n:'Butter',e:'🧈',a:'2 tbsp'}],steps:['Butter bread.','Heat pan, add bread butter-down.','Add cheese, top with bread.','Flip when golden.']},
-{id:7,name:'Caesar Salad',emoji:'🥗',time:15,cal:320,ings:[{n:'Lettuce',e:'🥬',a:'1 head'},{n:'Chicken',e:'🍗',a:'1 breast'},{n:'Cheese',e:'🧀',a:'¼ cup'}],steps:['Grill chicken, slice.','Chop lettuce.','Toss with dressing.','Top with chicken and cheese.']},
-{id:8,name:'Banana Pancakes',emoji:'🥞',time:20,cal:380,ings:[{n:'Banana',e:'🍌',a:'2'},{n:'Eggs',e:'🥚',a:'2'},{n:'Milk',e:'🥛',a:'½ cup'}],steps:['Mash bananas.','Add eggs and milk, mix.','Cook in buttered pan.','Flip when bubbles form.']}
+// BREAKFAST (1-12)
+{id:1,name:'Classic Omelette',emoji:'🍳',time:10,cal:280,tags:['breakfast','quick','healthy'],ings:[{n:'Eggs',e:'🥚',a:'3'},{n:'Butter',e:'🧈',a:'1 tbsp'},{n:'Cheese',e:'🧀',a:'¼ cup'}],steps:['Whisk eggs in bowl.','Heat butter in pan.','Pour eggs, let set 30 sec.','Push edges, tilt pan.','Add cheese, fold in half.']},
+{id:2,name:'Avocado Toast',emoji:'🥑',time:5,cal:320,tags:['breakfast','quick','healthy'],ings:[{n:'Bread',e:'🍞',a:'2 slices'},{n:'Avocado',e:'🥑',a:'1'},{n:'Eggs',e:'🥚',a:'1'}],steps:['Toast bread.','Mash avocado with salt.','Spread on toast.','Top with fried egg.']},
+{id:3,name:'Banana Pancakes',emoji:'🥞',time:20,cal:380,tags:['breakfast','comfort'],ings:[{n:'Banana',e:'🍌',a:'2'},{n:'Eggs',e:'🥚',a:'2'},{n:'Milk',e:'🥛',a:'½ cup'},{n:'Flour',e:'🌾',a:'1 cup'}],steps:['Mash bananas.','Add eggs, milk, flour.','Cook in buttered pan.','Flip when bubbles form.']},
+{id:4,name:'Smoothie Bowl',emoji:'🫐',time:5,cal:280,tags:['breakfast','quick','healthy','vegan'],ings:[{n:'Banana',e:'🍌',a:'1 frozen'},{n:'Berries',e:'🫐',a:'1 cup'},{n:'Yogurt',e:'🥛',a:'½ cup'}],steps:['Blend all until thick.','Pour into bowl.','Top with granola and fruit.']},
+{id:5,name:'French Toast',emoji:'🍞',time:15,cal:420,tags:['breakfast','comfort'],ings:[{n:'Bread',e:'🍞',a:'4 slices'},{n:'Eggs',e:'🥚',a:'2'},{n:'Milk',e:'🥛',a:'¼ cup'},{n:'Butter',e:'🧈',a:'2 tbsp'}],steps:['Whisk eggs with milk.','Dip bread in mixture.','Cook in butter until golden.','Serve with syrup.']},
+{id:6,name:'Eggs Benedict',emoji:'🥚',time:25,cal:520,tags:['breakfast'],ings:[{n:'Eggs',e:'🥚',a:'2'},{n:'Bread',e:'🍞',a:'2 muffins'},{n:'Bacon',e:'🥓',a:'4 slices'},{n:'Butter',e:'🧈',a:'3 tbsp'}],steps:['Poach eggs in simmering water.','Toast muffins, cook bacon.','Make hollandaise with butter.','Stack and serve.']},
+{id:7,name:'Breakfast Burrito',emoji:'🌯',time:15,cal:480,tags:['breakfast','quick'],ings:[{n:'Eggs',e:'🥚',a:'3'},{n:'Cheese',e:'🧀',a:'½ cup'},{n:'Bacon',e:'🥓',a:'3 slices'},{n:'Tortilla',e:'🫓',a:'1 large'}],steps:['Scramble eggs.','Cook bacon, chop.','Warm tortilla.','Fill and wrap.']},
+{id:8,name:'Overnight Oats',emoji:'🥣',time:5,cal:320,tags:['breakfast','quick','healthy'],ings:[{n:'Oats',e:'🌾',a:'½ cup'},{n:'Milk',e:'🥛',a:'½ cup'},{n:'Yogurt',e:'🥛',a:'¼ cup'},{n:'Berries',e:'🫐',a:'½ cup'}],steps:['Mix oats, milk, yogurt.','Add berries.','Refrigerate overnight.','Enjoy cold.']},
+{id:9,name:'Veggie Scramble',emoji:'🥬',time:12,cal:260,tags:['breakfast','healthy','vegetarian'],ings:[{n:'Eggs',e:'🥚',a:'3'},{n:'Spinach',e:'🥬',a:'1 cup'},{n:'Tomatoes',e:'🍅',a:'1'},{n:'Cheese',e:'🧀',a:'¼ cup'}],steps:['Sauté spinach and tomatoes.','Add beaten eggs.','Scramble until set.','Top with cheese.']},
+{id:10,name:'Açaí Bowl',emoji:'🍇',time:10,cal:340,tags:['breakfast','healthy','vegan'],ings:[{n:'Banana',e:'🍌',a:'1 frozen'},{n:'Berries',e:'🫐',a:'1 cup'},{n:'Milk',e:'🥛',a:'½ cup'}],steps:['Blend frozen fruit with milk.','Pour thick into bowl.','Top with granola, fruit, honey.']},
+{id:11,name:'Bagel & Lox',emoji:'🥯',time:5,cal:380,tags:['breakfast','quick'],ings:[{n:'Bread',e:'🥯',a:'1 bagel'},{n:'Salmon',e:'🐟',a:'3 oz'},{n:'Cream Cheese',e:'🧀',a:'2 tbsp'}],steps:['Toast bagel.','Spread cream cheese.','Top with smoked salmon.','Add capers if desired.']},
+{id:12,name:'Shakshuka',emoji:'🍳',time:25,cal:320,tags:['breakfast','healthy'],ings:[{n:'Eggs',e:'🥚',a:'4'},{n:'Tomatoes',e:'🍅',a:'4'},{n:'Onion',e:'🧅',a:'1'},{n:'Garlic',e:'🧄',a:'3 cloves'}],steps:['Sauté onion and garlic.','Add crushed tomatoes, simmer.','Make wells, crack in eggs.','Cover and cook until set.']},
+// LUNCH (13-24)
+{id:13,name:'Grilled Cheese',emoji:'🧀',time:10,cal:450,tags:['lunch','quick','comfort'],ings:[{n:'Bread',e:'🍞',a:'2 slices'},{n:'Cheese',e:'🧀',a:'2 slices'},{n:'Butter',e:'🧈',a:'2 tbsp'}],steps:['Butter bread.','Heat pan, add bread butter-down.','Add cheese, top with bread.','Flip when golden.']},
+{id:14,name:'Caesar Salad',emoji:'🥗',time:15,cal:320,tags:['lunch','healthy'],ings:[{n:'Lettuce',e:'🥬',a:'1 head'},{n:'Chicken',e:'🍗',a:'1 breast'},{n:'Cheese',e:'🧀',a:'¼ cup'},{n:'Bread',e:'🍞',a:'1 slice'}],steps:['Grill chicken, slice.','Make croutons from bread.','Toss lettuce with dressing.','Top with chicken, cheese, croutons.']},
+{id:15,name:'BLT Sandwich',emoji:'🥪',time:10,cal:420,tags:['lunch','quick'],ings:[{n:'Bread',e:'🍞',a:'2 slices'},{n:'Bacon',e:'🥓',a:'4 slices'},{n:'Lettuce',e:'🥬',a:'2 leaves'},{n:'Tomatoes',e:'🍅',a:'2 slices'}],steps:['Cook bacon until crispy.','Toast bread.','Layer lettuce, tomato, bacon.','Add mayo, close sandwich.']},
+{id:16,name:'Chicken Wrap',emoji:'🌯',time:12,cal:380,tags:['lunch','quick','healthy'],ings:[{n:'Chicken',e:'🍗',a:'1 breast'},{n:'Tortilla',e:'🫓',a:'1 large'},{n:'Lettuce',e:'🥬',a:'1 cup'},{n:'Cheese',e:'🧀',a:'¼ cup'}],steps:['Slice grilled chicken.','Warm tortilla.','Add chicken, lettuce, cheese.','Wrap tightly.']},
+{id:17,name:'Tuna Salad',emoji:'🐟',time:10,cal:290,tags:['lunch','quick','healthy'],ings:[{n:'Tuna',e:'🐟',a:'1 can'},{n:'Celery',e:'🥬',a:'2 stalks'},{n:'Onion',e:'🧅',a:'¼'},{n:'Mayo',e:'🫙',a:'2 tbsp'}],steps:['Drain tuna.','Dice celery and onion.','Mix all with mayo.','Serve on bread or greens.']},
+{id:18,name:'Caprese Salad',emoji:'🍅',time:5,cal:280,tags:['lunch','quick','healthy','vegetarian'],ings:[{n:'Tomatoes',e:'🍅',a:'2 large'},{n:'Cheese',e:'🧀',a:'8 oz mozzarella'},{n:'Basil',e:'🌿',a:'handful'}],steps:['Slice tomatoes and mozzarella.','Arrange alternating on plate.','Top with basil.','Drizzle olive oil, balsamic.']},
+{id:19,name:'Quesadilla',emoji:'🧀',time:10,cal:440,tags:['lunch','quick','comfort'],ings:[{n:'Tortilla',e:'🫓',a:'2'},{n:'Cheese',e:'🧀',a:'1 cup'},{n:'Chicken',e:'🍗',a:'½ cup'}],steps:['Place tortilla in pan.','Add cheese and chicken.','Top with second tortilla.','Flip when golden, slice.']},
+{id:20,name:'Greek Salad',emoji:'🥗',time:10,cal:260,tags:['lunch','healthy','vegetarian'],ings:[{n:'Cucumber',e:'🥒',a:'1'},{n:'Tomatoes',e:'🍅',a:'2'},{n:'Onion',e:'🧅',a:'¼'},{n:'Cheese',e:'🧀',a:'4 oz feta'}],steps:['Chop cucumber, tomatoes, onion.','Add olives and feta.','Dress with olive oil, oregano.','Toss and serve.']},
+{id:21,name:'Egg Salad Sandwich',emoji:'🥪',time:15,cal:380,tags:['lunch','quick'],ings:[{n:'Eggs',e:'🥚',a:'4'},{n:'Mayo',e:'🫙',a:'3 tbsp'},{n:'Bread',e:'🍞',a:'4 slices'},{n:'Lettuce',e:'🥬',a:'2 leaves'}],steps:['Boil eggs, cool, peel.','Mash with mayo, salt, pepper.','Spread on bread.','Add lettuce, close.']},
+{id:22,name:'Tomato Soup',emoji:'🍅',time:25,cal:180,tags:['lunch','healthy','vegetarian','vegan'],ings:[{n:'Tomatoes',e:'🍅',a:'6'},{n:'Onion',e:'🧅',a:'1'},{n:'Garlic',e:'🧄',a:'3 cloves'}],steps:['Sauté onion and garlic.','Add tomatoes, simmer 15 min.','Blend until smooth.','Season and serve.']},
+{id:23,name:'Club Sandwich',emoji:'🥪',time:15,cal:520,tags:['lunch'],ings:[{n:'Bread',e:'🍞',a:'3 slices'},{n:'Chicken',e:'🍗',a:'4 oz'},{n:'Bacon',e:'🥓',a:'4 slices'},{n:'Lettuce',e:'🥬',a:'2 leaves'}],steps:['Toast bread.','Cook bacon.','Layer chicken, bacon, lettuce, tomato.','Stack triple-decker style.']},
+{id:24,name:'Hummus Veggie Wrap',emoji:'🌯',time:8,cal:320,tags:['lunch','quick','healthy','vegetarian','vegan'],ings:[{n:'Tortilla',e:'🫓',a:'1'},{n:'Hummus',e:'🫘',a:'¼ cup'},{n:'Cucumber',e:'🥒',a:'½'},{n:'Carrots',e:'🥕',a:'1'}],steps:['Spread hummus on tortilla.','Add sliced veggies.','Roll tightly.','Slice in half.']},
+// DINNER (25-42)
+{id:25,name:'Chicken Stir Fry',emoji:'🍗',time:25,cal:420,tags:['dinner','healthy'],ings:[{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Vegetables',e:'🥬',a:'2 cups'},{n:'Soy Sauce',e:'🫙',a:'3 tbsp'},{n:'Garlic',e:'🧄',a:'3 cloves'}],steps:['Cut chicken into pieces.','Stir fry chicken 5 min.','Add vegetables and garlic.','Add soy sauce, toss.']},
+{id:26,name:'Pasta Carbonara',emoji:'🍝',time:20,cal:580,tags:['dinner','comfort'],ings:[{n:'Pasta',e:'🍝',a:'8 oz'},{n:'Eggs',e:'🥚',a:'2'},{n:'Cheese',e:'🧀',a:'½ cup'},{n:'Bacon',e:'🥓',a:'4 slices'}],steps:['Cook pasta.','Fry bacon until crispy.','Whisk eggs with cheese.','Toss hot pasta with egg mixture off heat.']},
+{id:27,name:'Beef Tacos',emoji:'🌮',time:20,cal:450,tags:['dinner','quick'],ings:[{n:'Ground Beef',e:'🥩',a:'1 lb'},{n:'Tortilla',e:'🫓',a:'8 small'},{n:'Cheese',e:'🧀',a:'1 cup'},{n:'Lettuce',e:'🥬',a:'2 cups'}],steps:['Brown beef with taco seasoning.','Warm tortillas.','Fill with beef.','Top with cheese, lettuce, salsa.']},
+{id:28,name:'Salmon & Veggies',emoji:'🐟',time:25,cal:380,tags:['dinner','healthy'],ings:[{n:'Salmon',e:'🐟',a:'2 fillets'},{n:'Broccoli',e:'🥦',a:'2 cups'},{n:'Lemon',e:'🍋',a:'1'}],steps:['Season salmon with lemon.','Roast at 400°F with broccoli.','Cook 15-18 minutes.','Serve with lemon wedges.']},
+{id:29,name:'Spaghetti Bolognese',emoji:'🍝',time:40,cal:520,tags:['dinner','comfort'],ings:[{n:'Pasta',e:'🍝',a:'12 oz'},{n:'Ground Beef',e:'🥩',a:'1 lb'},{n:'Tomatoes',e:'🍅',a:'1 can'},{n:'Onion',e:'🧅',a:'1'}],steps:['Sauté onion, add beef.','Add tomatoes, simmer 25 min.','Cook pasta.','Serve sauce over pasta.']},
+{id:30,name:'Chicken Parmesan',emoji:'🍗',time:35,cal:550,tags:['dinner','comfort'],ings:[{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Cheese',e:'🧀',a:'1 cup mozzarella'},{n:'Tomatoes',e:'🍅',a:'1 cup sauce'},{n:'Bread',e:'🍞',a:'1 cup crumbs'}],steps:['Bread chicken, pan fry.','Top with sauce and cheese.','Bake until cheese melts.','Serve with pasta.']},
+{id:31,name:'Shrimp Scampi',emoji:'🦐',time:20,cal:380,tags:['dinner','quick'],ings:[{n:'Shrimp',e:'🦐',a:'1 lb'},{n:'Pasta',e:'🍝',a:'8 oz'},{n:'Garlic',e:'🧄',a:'6 cloves'},{n:'Butter',e:'🧈',a:'4 tbsp'}],steps:['Cook pasta.','Sauté garlic in butter.','Add shrimp, cook 3 min.','Toss with pasta and lemon.']},
+{id:32,name:'Beef Stir Fry',emoji:'🥩',time:20,cal:440,tags:['dinner','quick','healthy'],ings:[{n:'Beef',e:'🥩',a:'1 lb'},{n:'Broccoli',e:'🥦',a:'2 cups'},{n:'Soy Sauce',e:'🫙',a:'3 tbsp'},{n:'Garlic',e:'🧄',a:'3 cloves'}],steps:['Slice beef thin.','Stir fry beef 2 min, set aside.','Cook broccoli and garlic.','Add beef back, toss with sauce.']},
+{id:33,name:'Baked Chicken',emoji:'🍗',time:45,cal:320,tags:['dinner','healthy'],ings:[{n:'Chicken',e:'🍗',a:'4 thighs'},{n:'Garlic',e:'🧄',a:'4 cloves'},{n:'Lemon',e:'🍋',a:'1'}],steps:['Season chicken.','Place in baking dish with garlic.','Squeeze lemon over top.','Bake 400°F for 35-40 min.']},
+{id:34,name:'Fish Tacos',emoji:'🌮',time:20,cal:380,tags:['dinner','healthy'],ings:[{n:'Fish',e:'🐟',a:'1 lb white fish'},{n:'Tortilla',e:'🫓',a:'8 small'},{n:'Cabbage',e:'🥬',a:'2 cups'},{n:'Lime',e:'🍋',a:'2'}],steps:['Season and grill fish.','Shred cabbage, dress with lime.','Warm tortillas.','Assemble tacos with slaw.']},
+{id:35,name:'Fried Rice',emoji:'🍚',time:20,cal:420,tags:['dinner','quick'],ings:[{n:'Rice',e:'🍚',a:'3 cups cooked'},{n:'Eggs',e:'🥚',a:'2'},{n:'Vegetables',e:'🥬',a:'1 cup'},{n:'Soy Sauce',e:'🫙',a:'2 tbsp'}],steps:['Scramble eggs, set aside.','Stir fry vegetables.','Add cold rice, fry 3 min.','Add eggs and soy sauce.']},
+{id:36,name:'Stuffed Peppers',emoji:'🫑',time:45,cal:380,tags:['dinner','healthy'],ings:[{n:'Bell Peppers',e:'🫑',a:'4'},{n:'Ground Beef',e:'🥩',a:'1 lb'},{n:'Rice',e:'🍚',a:'1 cup'},{n:'Tomatoes',e:'🍅',a:'1 can'}],steps:['Cut tops off peppers.','Mix beef, rice, tomatoes.','Stuff peppers.','Bake 375°F for 35 min.']},
+{id:37,name:'Chicken Alfredo',emoji:'🍝',time:25,cal:620,tags:['dinner','comfort'],ings:[{n:'Pasta',e:'🍝',a:'12 oz'},{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Cream',e:'🥛',a:'1 cup'},{n:'Cheese',e:'🧀',a:'1 cup parmesan'}],steps:['Cook pasta and chicken.','Simmer cream with cheese.','Slice chicken.','Toss pasta with sauce and chicken.']},
+{id:38,name:'Pork Chops',emoji:'🍖',time:25,cal:420,tags:['dinner'],ings:[{n:'Pork Chops',e:'🍖',a:'4'},{n:'Garlic',e:'🧄',a:'3 cloves'},{n:'Butter',e:'🧈',a:'2 tbsp'}],steps:['Season pork chops.','Sear in hot pan 4 min per side.','Add garlic and butter.','Baste and rest before serving.']},
+{id:39,name:'Vegetable Curry',emoji:'🍛',time:30,cal:340,tags:['dinner','healthy','vegetarian','vegan'],ings:[{n:'Potatoes',e:'🥔',a:'2'},{n:'Carrots',e:'🥕',a:'2'},{n:'Coconut Milk',e:'🥛',a:'1 can'},{n:'Curry Powder',e:'🫙',a:'2 tbsp'}],steps:['Dice potatoes and carrots.','Sauté with curry powder.','Add coconut milk.','Simmer until tender.']},
+{id:40,name:'Burgers',emoji:'🍔',time:20,cal:550,tags:['dinner','comfort'],ings:[{n:'Ground Beef',e:'🥩',a:'1 lb'},{n:'Bread',e:'🍞',a:'4 buns'},{n:'Cheese',e:'🧀',a:'4 slices'},{n:'Lettuce',e:'🥬',a:'4 leaves'}],steps:['Form 4 patties, season.','Grill 4 min per side.','Add cheese last minute.','Serve on buns with toppings.']},
+{id:41,name:'Pasta Primavera',emoji:'🍝',time:25,cal:380,tags:['dinner','healthy','vegetarian'],ings:[{n:'Pasta',e:'🍝',a:'12 oz'},{n:'Zucchini',e:'🥒',a:'1'},{n:'Bell Peppers',e:'🫑',a:'2'},{n:'Tomatoes',e:'🍅',a:'2'}],steps:['Cook pasta.','Sauté all vegetables.','Toss with pasta.','Add olive oil and parmesan.']},
+{id:42,name:'Meatballs',emoji:'🍖',time:35,cal:480,tags:['dinner','comfort'],ings:[{n:'Ground Beef',e:'🥩',a:'1 lb'},{n:'Bread',e:'🍞',a:'½ cup crumbs'},{n:'Eggs',e:'🥚',a:'1'},{n:'Tomatoes',e:'🍅',a:'2 cups sauce'}],steps:['Mix beef, crumbs, egg.','Form balls, brown in pan.','Add tomato sauce.','Simmer 20 minutes.']},
+// QUICK MEALS (43-50)
+{id:43,name:'Ramen Upgrade',emoji:'🍜',time:15,cal:420,tags:['dinner','quick'],ings:[{n:'Ramen',e:'🍜',a:'1 pack'},{n:'Eggs',e:'🥚',a:'1'},{n:'Vegetables',e:'🥬',a:'1 cup'},{n:'Soy Sauce',e:'🫙',a:'1 tbsp'}],steps:['Cook ramen.','Soft boil egg.','Sauté vegetables.','Top ramen with egg, veggies.']},
+{id:44,name:'Caprese Chicken',emoji:'🍗',time:20,cal:380,tags:['dinner','quick','healthy'],ings:[{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Tomatoes',e:'🍅',a:'2'},{n:'Cheese',e:'🧀',a:'4 oz mozzarella'},{n:'Basil',e:'🌿',a:'handful'}],steps:['Season and cook chicken.','Top with tomato and mozzarella.','Broil until cheese melts.','Garnish with basil.']},
+{id:45,name:'One-Pan Fajitas',emoji:'🫑',time:20,cal:360,tags:['dinner','quick','healthy'],ings:[{n:'Chicken',e:'🍗',a:'1 lb'},{n:'Bell Peppers',e:'🫑',a:'3'},{n:'Onion',e:'🧅',a:'1'},{n:'Tortilla',e:'🫓',a:'8'}],steps:['Slice chicken and veggies.','Cook chicken first, then veggies.','Season with fajita spices.','Serve in warm tortillas.']},
+{id:46,name:'Garlic Butter Shrimp',emoji:'🦐',time:12,cal:280,tags:['dinner','quick','healthy'],ings:[{n:'Shrimp',e:'🦐',a:'1 lb'},{n:'Garlic',e:'🧄',a:'6 cloves'},{n:'Butter',e:'🧈',a:'4 tbsp'},{n:'Lemon',e:'🍋',a:'1'}],steps:['Melt butter, add garlic.','Add shrimp, cook 2 min per side.','Squeeze lemon over top.','Serve immediately.']},
+{id:47,name:'Black Bean Tacos',emoji:'🌮',time:15,cal:320,tags:['dinner','quick','vegetarian','vegan'],ings:[{n:'Black Beans',e:'🫘',a:'1 can'},{n:'Tortilla',e:'🫓',a:'8'},{n:'Avocado',e:'🥑',a:'1'},{n:'Lime',e:'🍋',a:'1'}],steps:['Heat beans with cumin.','Warm tortillas.','Fill with beans and avocado.','Squeeze lime on top.']},
+{id:48,name:'Cheesy Baked Potato',emoji:'🥔',time:60,cal:450,tags:['dinner','comfort','vegetarian'],ings:[{n:'Potatoes',e:'🥔',a:'4 large'},{n:'Cheese',e:'🧀',a:'1 cup'},{n:'Butter',e:'🧈',a:'4 tbsp'},{n:'Bacon',e:'🥓',a:'4 slices'}],steps:['Bake potatoes at 400°F for 50 min.','Split open.','Add butter and cheese.','Top with bacon bits.']},
+{id:49,name:'Teriyaki Chicken Bowl',emoji:'🍚',time:25,cal:480,tags:['dinner'],ings:[{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Rice',e:'🍚',a:'2 cups'},{n:'Broccoli',e:'🥦',a:'2 cups'},{n:'Soy Sauce',e:'🫙',a:'¼ cup'}],steps:['Cook rice.','Grill chicken, slice.','Steam broccoli.','Drizzle all with teriyaki sauce.']},
+{id:50,name:'Margherita Pizza',emoji:'🍕',time:20,cal:520,tags:['dinner','comfort','vegetarian'],ings:[{n:'Pizza Dough',e:'🍕',a:'1 lb'},{n:'Tomatoes',e:'🍅',a:'½ cup sauce'},{n:'Cheese',e:'🧀',a:'8 oz mozzarella'},{n:'Basil',e:'🌿',a:'handful'}],steps:['Stretch dough on pan.','Spread sauce, add cheese.','Bake 450°F for 12-15 min.','Top with fresh basil.']},
+{id:51,name:'Peanut Noodles',emoji:'🍜',time:15,cal:440,tags:['dinner','quick','vegetarian'],ings:[{n:'Noodles',e:'🍜',a:'8 oz'},{n:'Peanut Butter',e:'🥜',a:'3 tbsp'},{n:'Soy Sauce',e:'🫙',a:'2 tbsp'},{n:'Vegetables',e:'🥬',a:'1 cup'}],steps:['Cook noodles.','Mix peanut butter and soy sauce.','Toss noodles with sauce.','Top with veggies.']},
+{id:52,name:'Sheet Pan Sausage',emoji:'🌭',time:30,cal:420,tags:['dinner'],ings:[{n:'Sausage',e:'🌭',a:'4 links'},{n:'Potatoes',e:'🥔',a:'4'},{n:'Bell Peppers',e:'🫑',a:'2'},{n:'Onion',e:'🧅',a:'1'}],steps:['Cut potatoes and veggies.','Arrange on sheet pan with sausage.','Drizzle with oil.','Roast 400°F for 25 min.']},
+{id:53,name:'Egg Fried Rice',emoji:'🍳',time:15,cal:380,tags:['dinner','quick'],ings:[{n:'Rice',e:'🍚',a:'3 cups cooked'},{n:'Eggs',e:'🥚',a:'3'},{n:'Soy Sauce',e:'🫙',a:'2 tbsp'},{n:'Peas',e:'🫛',a:'½ cup'}],steps:['Scramble eggs, set aside.','Fry cold rice in hot pan.','Add peas and soy sauce.','Mix in eggs, serve.']},
+{id:54,name:'Honey Garlic Chicken',emoji:'🍗',time:25,cal:380,tags:['dinner'],ings:[{n:'Chicken',e:'🍗',a:'4 thighs'},{n:'Garlic',e:'🧄',a:'6 cloves'},{n:'Honey',e:'🍯',a:'¼ cup'},{n:'Soy Sauce',e:'🫙',a:'3 tbsp'}],steps:['Mix honey, soy sauce, garlic.','Brown chicken in pan.','Add sauce, simmer 15 min.','Serve over rice.']},
+{id:55,name:'Spinach Stuffed Chicken',emoji:'🍗',time:35,cal:340,tags:['dinner','healthy'],ings:[{n:'Chicken',e:'🍗',a:'2 breasts'},{n:'Spinach',e:'🥬',a:'2 cups'},{n:'Cheese',e:'🧀',a:'½ cup feta'},{n:'Garlic',e:'🧄',a:'3 cloves'}],steps:['Sauté spinach with garlic.','Mix with feta.','Cut pocket in chicken, stuff.','Bake 375°F for 25 min.']}
 ];
 const video=document.getElementById('camera-video'),canvas=document.getElementById('capture-canvas'),ctx=canvas.getContext('2d');
 function toast(m,t='success'){const el=document.getElementById('toast');document.getElementById('toast-icon').textContent=t==='success'?'✓':'⚠️';document.getElementById('toast-message').textContent=m;el.className=`toast active ${t}`;setTimeout(()=>el.classList.remove('active'),3000)}
@@ -674,11 +739,11 @@ function expClass(d){return d<=1?'urgent':d<=3?'soon':'ok'}
 function save(){localStorage.setItem('pantry',JSON.stringify(state.pantry));localStorage.setItem('grocery',JSON.stringify(state.grocery))}
 function switchView(v){state.view=v;document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));document.getElementById(`${v}-view`).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>{n.classList.toggle('active',n.dataset.view===v)});if(v==='pantry')renderPantry();if(v==='recipes')renderRecipes();if(v==='grocery')renderGrocery()}
 function updateExpiring(){const sorted=[...state.pantry].sort((a,b)=>a.expiresIn-b.expiresIn).slice(0,6);const c=document.getElementById('expiring-items');if(!sorted.length){c.innerHTML='<div style="color:var(--dim);padding:20px;text-align:center;width:100%">Scan items to track expiration</div>';return}c.innerHTML=sorted.map(i=>`<div class="exp-item"><div class="emoji">${i.emoji}</div><p class="name">${i.name}</p><span class="days ${expClass(i.expiresIn)}">${expText(i.expiresIn)}</span></div>`).join('')}
-function getMatched(){const pNames=state.pantry.map(i=>i.name.toLowerCase());return recipes.map(r=>{const m=r.ings.filter(i=>pNames.some(p=>p.includes(i.n.toLowerCase())||i.n.toLowerCase().includes(p))).length;return{...r,match:Math.round(m/r.ings.length*100),missing:r.ings.length-m}}).sort((a,b)=>b.match-a.match)}
+function getMatched(filter='all'){const pNames=state.pantry.map(i=>i.name.toLowerCase());return recipes.filter(r=>filter==='all'||r.tags?.includes(filter)).map(r=>{const m=r.ings.filter(i=>pNames.some(p=>p.includes(i.n.toLowerCase())||i.n.toLowerCase().includes(p))).length;return{...r,match:Math.round(m/r.ings.length*100),missing:r.ings.length-m}}).sort((a,b)=>b.match-a.match)}
 function updateHomeRecipes(){const c=document.getElementById('home-recipes');const m=getMatched().slice(0,3);if(!m.length||!state.pantry.length){c.innerHTML='<div style="text-align:center;padding:30px;color:var(--dim)"><div style="font-size:48px;margin-bottom:12px">🍳</div><p>Scan items to get recipe suggestions</p></div>';return}c.innerHTML=m.map(r=>`<div class="recipe-card" data-id="${r.id}"><div class="img">${r.emoji}</div><div class="info"><div class="match">${r.match}% match</div><div class="name">${r.name}</div><div class="meta">⏱ ${r.time} min · 🔥 ${r.cal} cal</div>${r.missing>0?`<div class="missing">Missing ${r.missing} item${r.missing>1?'s':''}</div>`:''}</div></div>`).join('');c.querySelectorAll('.recipe-card').forEach(card=>card.addEventListener('click',()=>openRecipe(+card.dataset.id)))}
 function updateCounts(){document.getElementById('pantry-count').textContent=state.pantry.length;const gc=state.grocery.filter(i=>!i.checked).length;const gb=document.getElementById('grocery-count');gb.textContent=gc;gb.style.display=gc>0?'block':'none'}
 function renderPantry(){const c=document.getElementById('pantry-content');const cats={dairy:{n:'Dairy & Eggs',i:'🥛',items:[]},vegetables:{n:'Vegetables',i:'🥬',items:[]},fruits:{n:'Fruits',i:'🍎',items:[]},meat:{n:'Meat',i:'🍖',items:[]},grains:{n:'Grains',i:'🍞',items:[]},other:{n:'Other',i:'📦',items:[]}};state.pantry.forEach(i=>(cats[i.category]||cats.other).items.push(i));let h='';for(const[k,cat]of Object.entries(cats)){if(!cat.items.length)continue;h+=`<div class="category"><div class="category-header"><span class="icon">${cat.i}</span><span class="title">${cat.n}</span><span class="count">${cat.items.length}</span></div><div class="pantry-grid">${cat.items.map(i=>`<div class="pantry-item" data-id="${i.id}"><div class="emoji">${i.emoji}</div><div class="name">${i.name}</div><div class="exp">${expText(i.expiresIn)}</div></div>`).join('')}</div></div>`}if(!h)h='<div class="empty"><div class="icon">🧊</div><h3>Pantry Empty</h3><p>Scan items to add them</p><button onclick="openScanner()">📷 Scan Items</button></div>';c.innerHTML=h}
-function renderRecipes(){const c=document.getElementById('recipe-list');const m=getMatched();c.innerHTML=m.map(r=>`<div class="recipe-card" data-id="${r.id}"><div class="img">${r.emoji}</div><div class="info"><div class="match">${r.match}% match</div><div class="name">${r.name}</div><div class="meta">⏱ ${r.time} min · 🔥 ${r.cal} cal</div>${r.missing>0?`<div class="missing">Missing ${r.missing} item${r.missing>1?'s':''}</div>`:''}</div></div>`).join('');c.querySelectorAll('.recipe-card').forEach(card=>card.addEventListener('click',()=>openRecipe(+card.dataset.id)))}
+function renderRecipes(filter='all'){const c=document.getElementById('recipe-list');const m=getMatched(filter);if(!m.length){c.innerHTML='<div class="empty"><div class="icon">🍽️</div><h3>No Recipes Found</h3><p>Try a different filter</p></div>';return}c.innerHTML=m.map(r=>`<div class="recipe-card" data-id="${r.id}"><div class="img">${r.emoji}</div><div class="info"><div class="match">${r.match}% match</div><div class="name">${r.name}</div><div class="meta">⏱ ${r.time} min · 🔥 ${r.cal} cal</div>${r.missing>0?`<div class="missing">Missing ${r.missing} item${r.missing>1?'s':''}</div>`:''}</div></div>`).join('');c.querySelectorAll('.recipe-card').forEach(card=>card.addEventListener('click',()=>openRecipe(+card.dataset.id)))}
 function openRecipe(id){const r=recipes.find(x=>x.id===id);if(!r)return;const pNames=state.pantry.map(i=>i.name.toLowerCase());const ings=r.ings.map(i=>({...i,have:pNames.some(p=>p.includes(i.n.toLowerCase())||i.n.toLowerCase().includes(p))}));const missing=ings.filter(i=>!i.have);document.getElementById('recipe-modal-content').innerHTML=`<div class="recipe-modal-img">${r.emoji}</div><h1 class="recipe-modal-title">${r.name}</h1><div class="recipe-modal-meta"><span>⏱ ${r.time} min</span><span>🔥 ${r.cal} cal</span></div><div class="recipe-modal-section"><h4>📝 Ingredients</h4>${ings.map(i=>`<div class="recipe-modal-ing"><div class="check ${i.have?'have':'need'}">${i.have?'✓':'+'}</div><span class="text">${i.e} ${i.a} ${i.n}</span>${!i.have?`<span class="add" data-n="${i.n}" data-e="${i.e}">Add</span>`:''}</div>`).join('')}</div><div class="recipe-modal-section"><h4>👩‍🍳 Instructions</h4>${r.steps.map((s,i)=>`<div class="recipe-modal-step"><div class="num">${i+1}</div><div class="text">${s}</div></div>`).join('')}</div>`;document.querySelectorAll('.recipe-modal-ing .add').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();addGrocery(btn.dataset.n,btn.dataset.e);btn.textContent='Added ✓';btn.style.color='var(--green)'}));document.getElementById('recipe-add-missing').onclick=()=>{missing.forEach(i=>addGrocery(i.n,i.e));toast(`Added ${missing.length} items to grocery list`)};document.getElementById('recipe-modal').classList.add('active')}
 function closeRecipe(){document.getElementById('recipe-modal').classList.remove('active')}
 function renderGrocery(){const c=document.getElementById('grocery-list');const s=document.getElementById('grocery-status');s.textContent=`${state.grocery.filter(i=>!i.checked).length} of ${state.grocery.length} items`;if(!state.grocery.length){c.innerHTML='<div class="empty"><div class="icon">🛒</div><h3>List Empty</h3><p>Add items manually or from recipes</p></div>';return}c.innerHTML=state.grocery.map(i=>`<div class="grocery-item ${i.checked?'checked':''}" data-id="${i.id}"><div class="grocery-check ${i.checked?'checked':''}" data-id="${i.id}">${i.checked?'✓':''}</div><span class="emoji">${i.emoji}</span><div class="info"><div class="name">${i.name}</div></div><span class="delete" data-id="${i.id}">×</span></div>`).join('');c.querySelectorAll('.grocery-check').forEach(ch=>ch.addEventListener('click',()=>toggleGrocery(+ch.dataset.id)));c.querySelectorAll('.delete').forEach(d=>d.addEventListener('click',()=>deleteGrocery(+d.dataset.id)))}
@@ -724,6 +789,7 @@ document.querySelectorAll('.nav-item[data-view]').forEach(n=>n.addEventListener(
 document.querySelectorAll('.action[data-view]').forEach(n=>n.addEventListener('click',()=>switchView(n.dataset.view)));
 document.getElementById('view-pantry-link').addEventListener('click',()=>switchView('pantry'));
 document.getElementById('view-recipes-link').addEventListener('click',()=>switchView('recipes'));
+document.querySelectorAll('.recipe-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.recipe-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');renderRecipes(tab.dataset.filter)}));
 document.getElementById('open-scanner').addEventListener('click',openScanner);
 document.getElementById('open-scanner-pantry').addEventListener('click',openScanner);
 document.getElementById('nav-scan').addEventListener('click',openScanner);
@@ -745,13 +811,4 @@ document.getElementById('grocery-add-input').addEventListener('keypress',e=>{if(
 document.getElementById('clear-grocery').addEventListener('click',clearGrocery);
 document.getElementById('share-grocery').addEventListener('click',shareGrocery);
 document.querySelector('.logo').addEventListener('click',handleLogo);
-document.getElementById('save-api-key').addEventListener('click',saveKey);
-document.getElementById('dismiss-banner').addEventListener('click',()=>document.getElementById('api-banner').classList.remove('show'));
-document.getElementById('api-key-input').addEventListener('keypress',e=>{if(e.key==='Enter')saveKey()});
-document.getElementById('ob-next').addEventListener('click',nextOb);
-document.getElementById('ob-skip').addEventListener('click',()=>{localStorage.setItem('ob_done','true');document.getElementById('onboarding').classList.remove('active')});
-document.getElementById('settings-btn').addEventListener('click',()=>openLegal('settings'));
-});
-</script>
-</body>
-</html>
+document.getElementById(
