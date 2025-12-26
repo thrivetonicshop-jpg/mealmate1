@@ -7,1105 +7,33 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a0a">
     <title>MealMate - AI Meal Planning</title>
-    
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #0a0a0a;
-            --bg-card: #141414;
-            --bg-elevated: #1a1a1a;
-            --accent-green: #22c55e;
-            --accent-green-dim: #16a34a;
-            --accent-orange: #f97316;
-            --accent-red: #ef4444;
-            --accent-blue: #3b82f6;
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #52525b;
-            --border: #27272a;
-            --radius: 16px;
-            --radius-sm: 10px;
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            padding-top: var(--safe-top);
-            padding-bottom: calc(80px + var(--safe-bottom));
-        }
-
-        /* App Header */
-        .app-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: calc(var(--safe-top) + 12px) 20px 12px;
-            background: linear-gradient(to bottom, var(--bg-dark) 60%, transparent);
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dim));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .logo-text {
-            font-family: 'Instrument Serif', Georgia, serif;
-            font-size: 24px;
-            font-weight: 400;
-            letter-spacing: -0.5px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 80px 20px 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Greeting */
-        .greeting {
-            margin-bottom: 28px;
-        }
-
-        .greeting-time {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .greeting-text {
-            font-family: 'Instrument Serif', Georgia, serif;
-            font-size: 32px;
-            font-weight: 400;
-            line-height: 1.2;
-        }
-
-        /* Scanner Card - Main CTA */
-        .scanner-card {
-            background: linear-gradient(135deg, var(--accent-green), #15803d);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 24px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .scanner-card:active {
-            transform: scale(0.98);
-        }
-
-        .scanner-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-        }
-
-        .scanner-card-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .scanner-icon {
-            width: 56px;
-            height: 56px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 16px;
-            backdrop-filter: blur(10px);
-        }
-
-        .scanner-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .scanner-subtitle {
-            font-size: 14px;
-            opacity: 0.85;
-        }
-
-        .scanner-arrow {
-            position: absolute;
-            right: 24px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 24px;
-            opacity: 0.7;
-        }
-
-        /* Section Headers */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .section-link {
-            font-size: 14px;
-            color: var(--accent-green);
-            text-decoration: none;
-        }
-
-        /* Expiring Items */
-        .expiring-items {
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-            margin-bottom: 28px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .expiring-items::-webkit-scrollbar {
-            display: none;
-        }
-
-        .expiring-item {
-            flex: 0 0 auto;
-            background: var(--bg-card);
-            border-radius: var(--radius-sm);
-            padding: 14px;
-            min-width: 130px;
-            border: 1px solid var(--border);
-        }
-
-        .expiring-emoji {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .expiring-name {
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .expiring-days {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-
-        .expiring-days.urgent {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--accent-red);
-        }
-
-        .expiring-days.soon {
-            background: rgba(249, 115, 22, 0.15);
-            color: var(--accent-orange);
-        }
-
-        .expiring-days.ok {
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--accent-green);
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 28px;
-        }
-
-        .quick-action {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 18px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .quick-action:active {
-            transform: scale(0.97);
-            background: var(--bg-elevated);
-        }
-
-        .quick-action-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .quick-action-icon.pantry { background: rgba(249, 115, 22, 0.15); }
-        .quick-action-icon.recipes { background: rgba(139, 92, 246, 0.15); }
-        .quick-action-icon.grocery { background: rgba(59, 130, 246, 0.15); }
-        .quick-action-icon.plan { background: rgba(34, 197, 94, 0.15); }
-
-        .quick-action-text {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        /* Today's Meals */
-        .meal-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 18px;
-            margin-bottom: 12px;
-            display: flex;
-            gap: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .meal-card:active {
-            transform: scale(0.98);
-        }
-
-        .meal-image {
-            width: 80px;
-            height: 80px;
-            border-radius: var(--radius-sm);
-            background: var(--bg-elevated);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            flex-shrink: 0;
-        }
-
-        .meal-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .meal-type {
-            font-size: 12px;
-            color: var(--accent-green);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .meal-name {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .meal-meta {
-            display: flex;
-            gap: 12px;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-dark);
-            border-top: 1px solid var(--border);
-            padding: 8px 0 calc(8px + var(--safe-bottom));
-            display: flex;
-            justify-content: space-around;
-            z-index: 100;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 16px;
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.2s;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: var(--accent-green);
-        }
-
-        .nav-icon {
-            font-size: 24px;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        /* ==================== CAMERA SCANNER MODAL ==================== */
-        .scanner-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-dark);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-        }
-
-        .scanner-modal.active {
-            display: flex;
-        }
-
-        .scanner-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: calc(var(--safe-top) + 16px) 20px 16px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .scanner-close {
-            width: 44px;
-            height: 44px;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .scanner-mode-toggle {
-            display: flex;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            padding: 4px;
-        }
-
-        .mode-btn {
-            padding: 8px 16px;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,0.7);
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .mode-btn.active {
-            background: white;
-            color: black;
-        }
-
-        /* Video Container */
-        .video-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-            background: #000;
-        }
-
-        #camera-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Scanner Overlay */
-        .scanner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-        }
-
-        .scan-frame {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 280px;
-            height: 280px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 24px;
-        }
-
-        .scan-frame::before,
-        .scan-frame::after {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border-color: var(--accent-green);
-            border-style: solid;
-        }
-
-        .scan-frame::before {
-            top: -2px;
-            left: -2px;
-            border-width: 4px 0 0 4px;
-            border-radius: 24px 0 0 0;
-        }
-
-        .scan-frame::after {
-            top: -2px;
-            right: -2px;
-            border-width: 4px 4px 0 0;
-            border-radius: 0 24px 0 0;
-        }
-
-        .scan-corners-bottom::before,
-        .scan-corners-bottom::after {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border-color: var(--accent-green);
-            border-style: solid;
-        }
-
-        .scan-corners-bottom::before {
-            bottom: -2px;
-            left: -2px;
-            border-width: 0 0 4px 4px;
-            border-radius: 0 0 0 24px;
-        }
-
-        .scan-corners-bottom::after {
-            bottom: -2px;
-            right: -2px;
-            border-width: 0 4px 4px 0;
-            border-radius: 0 0 24px 0;
-        }
-
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 10%;
-            right: 10%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
-            border-radius: 2px;
-            animation: scanMove 2s ease-in-out infinite;
-        }
-
-        @keyframes scanMove {
-            0%, 100% { top: 10%; opacity: 0.5; }
-            50% { top: 85%; opacity: 1; }
-        }
-
-        .scanner-hint {
-            position: absolute;
-            bottom: 180px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            color: white;
-        }
-
-        .scanner-hint-text {
-            font-size: 15px;
-            font-weight: 500;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        }
-
-        /* Scanner Controls */
-        .scanner-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 24px 20px calc(24px + var(--safe-bottom));
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-        }
-
-        .capture-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: white;
-            border: 4px solid var(--accent-green);
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
-        }
-
-        .capture-btn:active {
-            transform: scale(0.92);
-        }
-
-        .capture-btn-inner {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: var(--accent-green);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-        }
-
-        .scanner-actions {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-
-        .scanner-action-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        .scanner-action-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .scanner-action-label {
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
-        }
-
-        /* Permission/Error States */
-        .scanner-state {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            text-align: center;
-            background: var(--bg-dark);
-        }
-
-        .scanner-state.hidden {
-            display: none;
-        }
-
-        .scanner-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-
-        .scanner-state-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .scanner-state-text {
-            font-size: 15px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            margin-bottom: 24px;
-            max-width: 300px;
-        }
-
-        .scanner-state-btn {
-            background: var(--accent-green);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .scanner-state-btn:active {
-            transform: scale(0.96);
-        }
-
-        /* Results Modal */
-        .results-modal {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-dark);
-            border-radius: 24px 24px 0 0;
-            padding: 20px 20px calc(20px + var(--safe-bottom));
-            max-height: 70vh;
-            overflow-y: auto;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 1001;
-        }
-
-        .results-modal.active {
-            transform: translateY(0);
-        }
-
-        .results-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            z-index: 1000;
-        }
-
-        .results-backdrop.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .results-handle {
-            width: 40px;
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            margin: 0 auto 20px;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .results-title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .results-close {
-            width: 36px;
-            height: 36px;
-            background: var(--bg-card);
-            border: none;
-            border-radius: 50%;
-            color: var(--text-secondary);
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .captured-preview {
-            width: 100%;
-            aspect-ratio: 4/3;
-            border-radius: var(--radius);
-            overflow: hidden;
-            margin-bottom: 20px;
-            background: var(--bg-card);
-        }
-
-        .captured-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .analyzing-state {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .analyzing-spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .detected-items {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .detected-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: var(--bg-card);
-            padding: 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-        }
-
-        .detected-emoji {
-            font-size: 28px;
-        }
-
-        .detected-info {
-            flex: 1;
-        }
-
-        .detected-name {
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .detected-qty {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .detected-check {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .detected-check.checked {
-            background: var(--accent-green);
-            border-color: var(--accent-green);
-            color: white;
-        }
-
-        .results-actions {
-            display: flex;
-            gap: 12px;
-        }
-
-        .results-btn {
-            flex: 1;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .results-btn.secondary {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-        }
-
-        .results-btn.primary {
-            background: var(--accent-green);
-            border: none;
-            color: white;
-        }
-
-        .results-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(10, 10, 10, 0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-        }
-
-        .loading-content {
-            text-align: center;
-        }
-
-        /* Toast Notifications */
-        .toast {
-            position: fixed;
-            bottom: calc(100px + var(--safe-bottom));
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            padding: 14px 24px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 3000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.active {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            border-color: var(--accent-green);
-        }
-
-        .toast.error {
-            border-color: var(--accent-red);
-        }
-
-        /* Pantry View */
-        .pantry-view, .recipes-view, .grocery-view, .plan-view {
-            display: none;
-        }
-
-        .view-active {
-            display: block !important;
-        }
-
-        .home-view.view-active {
-            display: block !important;
-        }
-
-        /* Pantry Categories */
-        .pantry-category {
-            margin-bottom: 24px;
-        }
-
-        .pantry-category-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .pantry-category-icon {
-            font-size: 20px;
-        }
-
-        .pantry-category-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .pantry-category-count {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-left: auto;
-        }
-
-        .pantry-items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
-
-        .pantry-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 14px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .pantry-item:active {
-            transform: scale(0.95);
-        }
-
-        .pantry-item-emoji {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .pantry-item-name {
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .pantry-item-exp {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-        }
-
-        .empty-state-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .empty-state-text {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-
-        .empty-state-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--accent-green);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 30px;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-        }
+        :root{--bg-dark:#0a0a0a;--bg-card:#141414;--bg-elevated:#1a1a1a;--accent-green:#22c55e;--accent-green-dim:#16a34a;--accent-orange:#f97316;--accent-red:#ef4444;--accent-blue:#3b82f6;--text-primary:#fff;--text-secondary:#a1a1aa;--text-muted:#52525b;--border:#27272a;--radius:16px;--radius-sm:10px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg-dark);color:var(--text-primary);min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-top:var(--safe-top);padding-bottom:calc(80px + var(--safe-bottom))}.app-header{position:fixed;top:0;left:0;right:0;padding:calc(var(--safe-top) + 12px) 20px 12px;background:linear-gradient(to bottom,var(--bg-dark) 60%,transparent);z-index:100;display:flex;justify-content:space-between;align-items:center}.logo{display:flex;align-items:center;gap:10px}.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent-green),var(--accent-green-dim));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}.logo-text{font-family:'Instrument Serif',Georgia,serif;font-size:24px;font-weight:400}.user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent-blue),#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}.main-content{padding:80px 20px 20px;max-width:600px;margin:0 auto}.greeting{margin-bottom:28px}.greeting-time{font-size:14px;color:var(--text-secondary);margin-bottom:4px}.greeting-text{font-family:'Instrument Serif',Georgia,serif;font-size:32px;font-weight:400;line-height:1.2}.api-banner{background:linear-gradient(135deg,#1e3a5f,#1a1a2e);border:1px solid var(--accent-blue);border-radius:var(--radius);padding:16px;margin-bottom:20px;display:none}.api-banner.show{display:block}.api-banner-title{font-size:14px;font-weight:600;color:var(--accent-blue);margin-bottom:8px;display:flex;align-items:center;gap:8px}.api-banner-text{font-size:13px;color:var(--text-secondary);margin-bottom:12px;line-height:1.4}.api-input-group{display:flex;gap:8px}.api-input{flex:1;background:var(--bg-dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text-primary);font-size:13px;font-family:monospace}.api-save-btn{background:var(--accent-blue);border:none;border-radius:8px;padding:10px 16px;color:#fff;font-size:13px;font-weight:600;cursor:pointer}.api-banner-dismiss{float:right;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px}.scanner-card{background:linear-gradient(135deg,var(--accent-green),#15803d);border-radius:var(--radius);padding:24px;margin-bottom:24px;cursor:pointer;transition:transform .2s;position:relative;overflow:hidden}.scanner-card:active{transform:scale(.98)}.scanner-card::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 60%)}.scanner-card-content{position:relative;z-index:1}.scanner-icon{width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px;backdrop-filter:blur(10px)}.scanner-title{font-size:22px;font-weight:600;margin-bottom:6px}.scanner-subtitle{font-size:14px;opacity:.85}.scanner-arrow{position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:24px;opacity:.7}.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.section-title{font-size:18px;font-weight:600}.section-link{font-size:14px;color:var(--accent-green);text-decoration:none}.expiring-items{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:28px;scrollbar-width:none}.expiring-items::-webkit-scrollbar{display:none}.expiring-item{flex:0 0 auto;background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;min-width:130px;border:1px solid var(--border)}.expiring-emoji{font-size:32px;margin-bottom:8px}.expiring-name{font-size:14px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expiring-days{font-size:12px;padding:3px 8px;border-radius:20px;display:inline-block}.expiring-days.urgent{background:rgba(239,68,68,.15);color:var(--accent-red)}.expiring-days.soon{background:rgba(249,115,22,.15);color:var(--accent-orange)}.expiring-days.ok{background:rgba(34,197,94,.15);color:var(--accent-green)}.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}.quick-action{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s}.quick-action:active{transform:scale(.97);background:var(--bg-elevated)}.quick-action-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}.quick-action-icon.pantry{background:rgba(249,115,22,.15)}.quick-action-icon.recipes{background:rgba(139,92,246,.15)}.quick-action-icon.grocery{background:rgba(59,130,246,.15)}.quick-action-icon.plan{background:rgba(34,197,94,.15)}.quick-action-text{font-size:14px;font-weight:500}.meal-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;display:flex;gap:16px;cursor:pointer;transition:all .2s}.meal-card:active{transform:scale(.98)}.meal-image{width:80px;height:80px;border-radius:var(--radius-sm);background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}.meal-info{flex:1;display:flex;flex-direction:column;justify-content:center}.meal-type{font-size:12px;color:var(--accent-green);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}.meal-name{font-size:16px;font-weight:600;margin-bottom:6px}.meal-meta{display:flex;gap:12px;font-size:12px;color:var(--text-secondary)}.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-dark);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--safe-bottom));display:flex;justify-content:space-around;z-index:100}.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;color:var(--text-muted);cursor:pointer;transition:color .2s}.nav-item.active{color:var(--accent-green)}.nav-icon{font-size:24px}.nav-label{font-size:11px;font-weight:500}.scanner-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-dark);z-index:1000;display:none;flex-direction:column}.scanner-modal.active{display:flex}.scanner-header{position:absolute;top:0;left:0;right:0;padding:calc(var(--safe-top) + 16px) 20px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.8) 0%,transparent 100%);display:flex;justify-content:space-between;align-items:center;z-index:10}.scanner-close{width:44px;height:44px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:none;border-radius:50%;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}.scanner-mode-toggle{display:flex;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border-radius:25px;padding:4px}.mode-btn{padding:8px 16px;border:none;background:transparent;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;border-radius:20px;cursor:pointer;transition:all .2s}.mode-btn.active{background:#fff;color:#000}.video-container{flex:1;position:relative;overflow:hidden;background:#000}#camera-video{width:100%;height:100%;object-fit:cover}.scanner-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:280px;border:2px solid rgba(255,255,255,.3);border-radius:24px}.scan-frame::before,.scan-frame::after{content:'';position:absolute;width:40px;height:40px;border-color:var(--accent-green);border-style:solid}.scan-frame::before{top:-2px;left:-2px;border-width:4px 0 0 4px;border-radius:24px 0 0 0}.scan-frame::after{top:-2px;right:-2px;border-width:4px 4px 0 0;border-radius:0 24px 0 0}.scan-corners-bottom::before,.scan-corners-bottom::after{content:'';position:absolute;width:40px;height:40px;border-color:var(--accent-green);border-style:solid}.scan-corners-bottom::before{bottom:-2px;left:-2px;border-width:0 0 4px 4px;border-radius:0 0 0 24px}.scan-corners-bottom::after{bottom:-2px;right:-2px;border-width:0 4px 4px 0;border-radius:0 0 24px 0}.scan-line{position:absolute;top:0;left:10%;right:10%;height:3px;background:linear-gradient(90deg,transparent,var(--accent-green),transparent);border-radius:2px;animation:scanMove 2s ease-in-out infinite}@keyframes scanMove{0%,100%{top:10%;opacity:.5}50%{top:85%;opacity:1}}.scanner-hint{position:absolute;bottom:180px;left:50%;transform:translateX(-50%);text-align:center;color:#fff}.scanner-hint-text{font-size:15px;font-weight:500;text-shadow:0 2px 8px rgba(0,0,0,.5)}.scanner-controls{position:absolute;bottom:0;left:0;right:0;padding:24px 20px calc(24px + var(--safe-bottom));background:linear-gradient(to top,rgba(0,0,0,.9) 0%,transparent 100%)}.capture-btn{width:80px;height:80px;border-radius:50%;background:#fff;border:4px solid var(--accent-green);margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 4px 20px rgba(34,197,94,.3)}.capture-btn:active{transform:scale(.92)}.capture-btn-inner{width:64px;height:64px;border-radius:50%;background:var(--accent-green);display:flex;align-items:center;justify-content:center;font-size:28px}.scanner-actions{display:flex;justify-content:space-around;margin-top:20px}.scanner-action-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;color:#fff;cursor:pointer;padding:8px}.scanner-action-icon{width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}.scanner-action-label{font-size:12px;color:rgba(255,255,255,.8)}.scanner-state{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;background:var(--bg-dark)}.scanner-state.hidden{display:none}.scanner-state-icon{font-size:64px;margin-bottom:20px}.scanner-state-title{font-size:22px;font-weight:600;margin-bottom:12px}.scanner-state-text{font-size:15px;color:var(--text-secondary);line-height:1.5;margin-bottom:24px;max-width:300px}.scanner-state-btn{background:var(--accent-green);color:#fff;border:none;padding:14px 32px;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;transition:transform .2s}.scanner-state-btn:active{transform:scale(.96)}.results-modal{position:fixed;bottom:0;left:0;right:0;background:var(--bg-dark);border-radius:24px 24px 0 0;padding:20px 20px calc(20px + var(--safe-bottom));max-height:70vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease;z-index:1001}.results-modal.active{transform:translateY(0)}.results-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .3s;z-index:1000}.results-backdrop.active{opacity:1;pointer-events:auto}.results-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.results-title{font-size:20px;font-weight:600}.results-close{width:36px;height:36px;background:var(--bg-card);border:none;border-radius:50%;color:var(--text-secondary);font-size:20px;cursor:pointer}.captured-preview{width:100%;aspect-ratio:4/3;border-radius:var(--radius);overflow:hidden;margin-bottom:20px;background:var(--bg-card)}.captured-preview img{width:100%;height:100%;object-fit:cover}.analyzing-state{text-align:center;padding:40px 20px}.analyzing-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--accent-green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}@keyframes spin{to{transform:rotate(360deg)}}.detected-items{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}.detected-item{display:flex;align-items:center;gap:14px;background:var(--bg-card);padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border)}.detected-emoji{font-size:28px}.detected-info{flex:1}.detected-name{font-weight:500;margin-bottom:2px}.detected-qty{font-size:13px;color:var(--text-secondary)}.detected-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}.detected-check.checked{background:var(--accent-green);border-color:var(--accent-green);color:#fff}.results-actions{display:flex;gap:12px}.results-btn{flex:1;padding:16px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}.results-btn.secondary{background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary)}.results-btn.primary{background:var(--accent-green);border:none;color:#fff}.results-btn:active{transform:scale(.97)}.toast{position:fixed;bottom:calc(100px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-elevated);border:1px solid var(--border);padding:14px 24px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all .3s;z-index:3000;display:flex;align-items:center;gap:10px}.toast.active{transform:translateX(-50%) translateY(0);opacity:1}.toast.success{border-color:var(--accent-green)}.toast.error{border-color:var(--accent-red)}.pantry-view,.recipes-view,.grocery-view,.plan-view{display:none}.view-active{display:block!important}.pantry-category{margin-bottom:24px}.pantry-category-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}.pantry-category-icon{font-size:20px}.pantry-category-title{font-size:16px;font-weight:600}.pantry-category-count{font-size:13px;color:var(--text-secondary);margin-left:auto}.pantry-items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}.pantry-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}.pantry-item:active{transform:scale(.95)}.pantry-item-emoji{font-size:32px;margin-bottom:8px}.pantry-item-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pantry-item-exp{font-size:11px;color:var(--text-secondary);margin-top:4px}.empty-state{text-align:center;padding:60px 20px}.empty-state-icon{font-size:64px;margin-bottom:16px}.empty-state-title{font-size:20px;font-weight:600;margin-bottom:8px}.empty-state-text{font-size:14px;color:var(--text-secondary);margin-bottom:24px}.empty-state-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-green);color:#fff;padding:14px 28px;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;border:none}
     </style>
 </head>
 <body>
-    <!-- App Header -->
     <header class="app-header">
-        <div class="logo">
-            <div class="logo-icon">🍳</div>
-            <span class="logo-text">MealMate</span>
-        </div>
+        <div class="logo"><div class="logo-icon">🍳</div><span class="logo-text">MealMate</span></div>
         <div class="user-avatar">D</div>
     </header>
-
-    <!-- Main Content Area -->
     <main class="main-content">
-        <!-- HOME VIEW -->
         <div class="home-view view-active" id="home-view">
             <div class="greeting">
                 <p class="greeting-time" id="greeting-time">Good morning</p>
                 <h1 class="greeting-text">What's cooking today?</h1>
             </div>
-
-            <!-- Scanner CTA -->
+            <div class="api-banner" id="api-banner">
+                <button class="api-banner-dismiss" id="dismiss-banner">×</button>
+                <div class="api-banner-title">🔑 Enable AI Food Scanner</div>
+                <p class="api-banner-text">Add your Claude API key from console.anthropic.com to enable real AI food recognition.</p>
+                <div class="api-input-group">
+                    <input type="password" class="api-input" id="api-key-input" placeholder="sk-ant-api03-...">
+                    <button class="api-save-btn" id="save-api-key">Save</button>
+                </div>
+            </div>
             <div class="scanner-card" id="open-scanner">
                 <div class="scanner-card-content">
                     <div class="scanner-icon">📷</div>
@@ -1114,746 +42,283 @@
                 </div>
                 <span class="scanner-arrow">→</span>
             </div>
-
-            <!-- Expiring Soon -->
-            <div class="section-header">
-                <h3 class="section-title">Use Soon</h3>
-                <a href="#" class="section-link" id="view-pantry">View All</a>
-            </div>
-            <div class="expiring-items" id="expiring-items">
-                <div class="expiring-item">
-                    <div class="expiring-emoji">🥛</div>
-                    <p class="expiring-name">Milk</p>
-                    <span class="expiring-days urgent">Exp. today</span>
-                </div>
-                <div class="expiring-item">
-                    <div class="expiring-emoji">🥬</div>
-                    <p class="expiring-name">Spinach</p>
-                    <span class="expiring-days urgent">1 day</span>
-                </div>
-                <div class="expiring-item">
-                    <div class="expiring-emoji">🍗</div>
-                    <p class="expiring-name">Chicken</p>
-                    <span class="expiring-days soon">2 days</span>
-                </div>
-                <div class="expiring-item">
-                    <div class="expiring-emoji">🍅</div>
-                    <p class="expiring-name">Tomatoes</p>
-                    <span class="expiring-days ok">4 days</span>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="section-header">
-                <h3 class="section-title">Quick Actions</h3>
-            </div>
+            <div class="section-header"><h3 class="section-title">Use Soon</h3><a href="#" class="section-link" id="view-pantry">View All</a></div>
+            <div class="expiring-items" id="expiring-items"></div>
+            <div class="section-header"><h3 class="section-title">Quick Actions</h3></div>
             <div class="quick-actions">
-                <div class="quick-action" data-view="pantry">
-                    <div class="quick-action-icon pantry">🧊</div>
-                    <span class="quick-action-text">My Pantry</span>
-                </div>
-                <div class="quick-action" data-view="recipes">
-                    <div class="quick-action-icon recipes">📖</div>
-                    <span class="quick-action-text">Recipes</span>
-                </div>
-                <div class="quick-action" data-view="grocery">
-                    <div class="quick-action-icon grocery">🛒</div>
-                    <span class="quick-action-text">Grocery List</span>
-                </div>
-                <div class="quick-action" data-view="plan">
-                    <div class="quick-action-icon plan">📅</div>
-                    <span class="quick-action-text">Meal Plan</span>
-                </div>
+                <div class="quick-action" data-view="pantry"><div class="quick-action-icon pantry">🧊</div><span class="quick-action-text">My Pantry</span></div>
+                <div class="quick-action" data-view="recipes"><div class="quick-action-icon recipes">📖</div><span class="quick-action-text">Recipes</span></div>
+                <div class="quick-action" data-view="grocery"><div class="quick-action-icon grocery">🛒</div><span class="quick-action-text">Grocery List</span></div>
+                <div class="quick-action" data-view="plan"><div class="quick-action-icon plan">📅</div><span class="quick-action-text">Meal Plan</span></div>
             </div>
-
-            <!-- Today's Meals -->
-            <div class="section-header">
-                <h3 class="section-title">Today's Meals</h3>
-                <a href="#" class="section-link">Edit</a>
-            </div>
-            <div class="meal-card">
-                <div class="meal-image">🥗</div>
-                <div class="meal-info">
-                    <span class="meal-type">Lunch</span>
-                    <h4 class="meal-name">Mediterranean Salad</h4>
-                    <div class="meal-meta">
-                        <span>🔥 380 cal</span>
-                        <span>⏱ 15 min</span>
-                    </div>
-                </div>
-            </div>
-            <div class="meal-card">
-                <div class="meal-image">🍝</div>
-                <div class="meal-info">
-                    <span class="meal-type">Dinner</span>
-                    <h4 class="meal-name">Chicken Alfredo Pasta</h4>
-                    <div class="meal-meta">
-                        <span>🔥 620 cal</span>
-                        <span>⏱ 35 min</span>
-                    </div>
-                </div>
-            </div>
+            <div class="section-header"><h3 class="section-title">Today's Meals</h3><a href="#" class="section-link">Edit</a></div>
+            <div class="meal-card"><div class="meal-image">🥗</div><div class="meal-info"><span class="meal-type">Lunch</span><h4 class="meal-name">Mediterranean Salad</h4><div class="meal-meta"><span>🔥 380 cal</span><span>⏱ 15 min</span></div></div></div>
+            <div class="meal-card"><div class="meal-image">🍝</div><div class="meal-info"><span class="meal-type">Dinner</span><h4 class="meal-name">Chicken Alfredo Pasta</h4><div class="meal-meta"><span>🔥 620 cal</span><span>⏱ 35 min</span></div></div></div>
         </div>
-
-        <!-- PANTRY VIEW -->
         <div class="pantry-view" id="pantry-view">
-            <div class="greeting">
-                <h1 class="greeting-text">My Pantry</h1>
-            </div>
-
-            <div class="scanner-card" id="open-scanner-pantry" style="margin-bottom: 28px;">
-                <div class="scanner-card-content">
-                    <div class="scanner-icon">📷</div>
-                    <h2 class="scanner-title">Add Items</h2>
-                    <p class="scanner-subtitle">Scan to quickly add ingredients</p>
-                </div>
-                <span class="scanner-arrow">→</span>
-            </div>
-
-            <div id="pantry-content">
-                <!-- Pantry items will be populated here -->
-            </div>
+            <div class="greeting"><h1 class="greeting-text">My Pantry</h1></div>
+            <div class="scanner-card" id="open-scanner-pantry" style="margin-bottom:28px"><div class="scanner-card-content"><div class="scanner-icon">📷</div><h2 class="scanner-title">Add Items</h2><p class="scanner-subtitle">Scan to quickly add ingredients</p></div><span class="scanner-arrow">→</span></div>
+            <div id="pantry-content"></div>
         </div>
-
-        <!-- RECIPES VIEW -->
-        <div class="recipes-view" id="recipes-view">
-            <div class="greeting">
-                <h1 class="greeting-text">Recipes</h1>
-            </div>
-            <div class="empty-state">
-                <div class="empty-state-icon">📖</div>
-                <h3 class="empty-state-title">Coming Soon</h3>
-                <p class="empty-state-text">Recipe suggestions based on your pantry</p>
-            </div>
-        </div>
-
-        <!-- GROCERY VIEW -->
-        <div class="grocery-view" id="grocery-view">
-            <div class="greeting">
-                <h1 class="greeting-text">Grocery List</h1>
-            </div>
-            <div class="empty-state">
-                <div class="empty-state-icon">🛒</div>
-                <h3 class="empty-state-title">List Empty</h3>
-                <p class="empty-state-text">Items needed for your meal plan will appear here</p>
-            </div>
-        </div>
-
-        <!-- PLAN VIEW -->
-        <div class="plan-view" id="plan-view">
-            <div class="greeting">
-                <h1 class="greeting-text">Meal Plan</h1>
-            </div>
-            <div class="empty-state">
-                <div class="empty-state-icon">📅</div>
-                <h3 class="empty-state-title">No Plan Yet</h3>
-                <p class="empty-state-text">Create your weekly meal plan</p>
-            </div>
-        </div>
+        <div class="recipes-view" id="recipes-view"><div class="greeting"><h1 class="greeting-text">Recipes</h1></div><div class="empty-state"><div class="empty-state-icon">📖</div><h3 class="empty-state-title">Coming Soon</h3><p class="empty-state-text">Recipe suggestions based on your pantry</p></div></div>
+        <div class="grocery-view" id="grocery-view"><div class="greeting"><h1 class="greeting-text">Grocery List</h1></div><div class="empty-state"><div class="empty-state-icon">🛒</div><h3 class="empty-state-title">List Empty</h3><p class="empty-state-text">Items needed for your meal plan will appear here</p></div></div>
+        <div class="plan-view" id="plan-view"><div class="greeting"><h1 class="greeting-text">Meal Plan</h1></div><div class="empty-state"><div class="empty-state-icon">📅</div><h3 class="empty-state-title">No Plan Yet</h3><p class="empty-state-text">Create your weekly meal plan</p></div></div>
     </main>
-
-    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <div class="nav-item active" data-view="home">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">Home</span>
-        </div>
-        <div class="nav-item" data-view="pantry">
-            <span class="nav-icon">🧊</span>
-            <span class="nav-label">Pantry</span>
-        </div>
-        <div class="nav-item" id="nav-scan">
-            <span class="nav-icon">📷</span>
-            <span class="nav-label">Scan</span>
-        </div>
-        <div class="nav-item" data-view="plan">
-            <span class="nav-icon">📅</span>
-            <span class="nav-label">Plan</span>
-        </div>
-        <div class="nav-item" data-view="recipes">
-            <span class="nav-icon">👤</span>
-            <span class="nav-label">Profile</span>
-        </div>
+        <div class="nav-item active" data-view="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></div>
+        <div class="nav-item" data-view="pantry"><span class="nav-icon">🧊</span><span class="nav-label">Pantry</span></div>
+        <div class="nav-item" id="nav-scan"><span class="nav-icon">📷</span><span class="nav-label">Scan</span></div>
+        <div class="nav-item" data-view="plan"><span class="nav-icon">📅</span><span class="nav-label">Plan</span></div>
+        <div class="nav-item" data-view="recipes"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
     </nav>
-
-    <!-- ==================== CAMERA SCANNER MODAL ==================== -->
     <div class="scanner-modal" id="scanner-modal">
-        <!-- Scanner Header -->
         <div class="scanner-header">
             <button class="scanner-close" id="close-scanner">✕</button>
-            <div class="scanner-mode-toggle">
-                <button class="mode-btn active" data-mode="scan">Scan</button>
-                <button class="mode-btn" data-mode="barcode">Barcode</button>
-            </div>
-            <div style="width: 44px;"></div>
+            <div class="scanner-mode-toggle"><button class="mode-btn active" data-mode="scan">Scan</button><button class="mode-btn" data-mode="barcode">Barcode</button></div>
+            <div style="width:44px"></div>
         </div>
-
-        <!-- Video Container -->
         <div class="video-container">
             <video id="camera-video" autoplay playsinline muted></video>
-            
-            <!-- Scanner Overlay -->
-            <div class="scanner-overlay" id="scanner-overlay">
-                <div class="scan-frame">
-                    <div class="scan-corners-bottom"></div>
-                    <div class="scan-line"></div>
-                </div>
-            </div>
-
-            <!-- Permission State -->
-            <div class="scanner-state" id="permission-state">
-                <div class="scanner-state-icon">📷</div>
-                <h3 class="scanner-state-title">Camera Access</h3>
-                <p class="scanner-state-text">MealMate needs camera access to scan your ingredients and identify food items.</p>
-                <button class="scanner-state-btn" id="request-camera">Enable Camera</button>
-            </div>
-
-            <!-- Error State -->
-            <div class="scanner-state hidden" id="error-state">
-                <div class="scanner-state-icon">⚠️</div>
-                <h3 class="scanner-state-title">Camera Unavailable</h3>
-                <p class="scanner-state-text" id="error-message">Unable to access camera. Please check your browser settings.</p>
-                <button class="scanner-state-btn" id="retry-camera">Try Again</button>
-            </div>
-
-            <!-- Scanner Hint -->
-            <div class="scanner-hint" id="scanner-hint" style="display: none;">
-                <p class="scanner-hint-text">Point at food items to scan</p>
-            </div>
+            <div class="scanner-overlay" id="scanner-overlay"><div class="scan-frame"><div class="scan-corners-bottom"></div><div class="scan-line"></div></div></div>
+            <div class="scanner-state" id="permission-state"><div class="scanner-state-icon">📷</div><h3 class="scanner-state-title">Camera Access</h3><p class="scanner-state-text">MealMate needs camera access to scan your ingredients.</p><button class="scanner-state-btn" id="request-camera">Enable Camera</button></div>
+            <div class="scanner-state hidden" id="error-state"><div class="scanner-state-icon">⚠️</div><h3 class="scanner-state-title">Camera Unavailable</h3><p class="scanner-state-text" id="error-message">Unable to access camera.</p><button class="scanner-state-btn" id="retry-camera">Try Again</button></div>
+            <div class="scanner-hint" id="scanner-hint" style="display:none"><p class="scanner-hint-text">Point at food items to scan</p></div>
         </div>
-
-        <!-- Scanner Controls -->
-        <div class="scanner-controls" id="scanner-controls" style="display: none;">
-            <button class="capture-btn" id="capture-btn">
-                <div class="capture-btn-inner">📸</div>
-            </button>
+        <div class="scanner-controls" id="scanner-controls" style="display:none">
+            <button class="capture-btn" id="capture-btn"><div class="capture-btn-inner">📸</div></button>
             <div class="scanner-actions">
-                <button class="scanner-action-btn" id="flip-camera">
-                    <div class="scanner-action-icon">🔄</div>
-                    <span class="scanner-action-label">Flip</span>
-                </button>
-                <button class="scanner-action-btn" id="gallery-btn">
-                    <div class="scanner-action-icon">🖼️</div>
-                    <span class="scanner-action-label">Gallery</span>
-                </button>
-                <button class="scanner-action-btn" id="flash-btn">
-                    <div class="scanner-action-icon">⚡</div>
-                    <span class="scanner-action-label">Flash</span>
-                </button>
+                <button class="scanner-action-btn" id="flip-camera"><div class="scanner-action-icon">🔄</div><span class="scanner-action-label">Flip</span></button>
+                <button class="scanner-action-btn" id="gallery-btn"><div class="scanner-action-icon">🖼️</div><span class="scanner-action-label">Gallery</span></button>
+                <button class="scanner-action-btn" id="flash-btn"><div class="scanner-action-icon">⚡</div><span class="scanner-action-label">Flash</span></button>
             </div>
         </div>
     </div>
-
-    <!-- Results Modal -->
     <div class="results-backdrop" id="results-backdrop"></div>
     <div class="results-modal" id="results-modal">
         <div class="results-handle"></div>
-        <div class="results-header">
-            <h3 class="results-title">Detected Items</h3>
-            <button class="results-close" id="results-close">✕</button>
-        </div>
-        <div class="captured-preview" id="captured-preview">
-            <img id="captured-image" src="" alt="Captured">
-        </div>
-        <div id="results-content">
-            <div class="analyzing-state" id="analyzing-state">
-                <div class="analyzing-spinner"></div>
-                <p>Analyzing your ingredients...</p>
-            </div>
-            <div class="detected-items" id="detected-items" style="display: none;">
-                <!-- Items will be populated here -->
-            </div>
-        </div>
-        <div class="results-actions" id="results-actions" style="display: none;">
-            <button class="results-btn secondary" id="scan-more">Scan More</button>
-            <button class="results-btn primary" id="add-to-pantry">Add to Pantry</button>
-        </div>
+        <div class="results-header"><h3 class="results-title">Detected Items</h3><button class="results-close" id="results-close">✕</button></div>
+        <div class="captured-preview"><img id="captured-image" src="" alt="Captured"></div>
+        <div id="results-content"><div class="analyzing-state" id="analyzing-state"><div class="analyzing-spinner"></div><p>Analyzing your ingredients...</p></div><div class="detected-items" id="detected-items" style="display:none"></div></div>
+        <div class="results-actions" id="results-actions" style="display:none"><button class="results-btn secondary" id="scan-more">Scan More</button><button class="results-btn primary" id="add-to-pantry">Add to Pantry</button></div>
     </div>
-
-    <!-- Hidden file input for gallery -->
-    <input type="file" id="gallery-input" accept="image/*" style="display: none;">
-
-    <!-- Hidden canvas for capture -->
-    <canvas id="capture-canvas" style="display: none;"></canvas>
-
-    <!-- Toast -->
-    <div class="toast" id="toast">
-        <span id="toast-icon">✓</span>
-        <span id="toast-message">Items added to pantry</span>
-    </div>
-
+    <input type="file" id="gallery-input" accept="image/*" style="display:none">
+    <canvas id="capture-canvas" style="display:none"></canvas>
+    <div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-message">Items added to pantry</span></div>
     <script>
-        // ==================== APP STATE ====================
+        let CLAUDE_API_KEY = localStorage.getItem('mealmate_api_key') || '';
         const state = {
-            currentView: 'home',
-            cameraActive: false,
-            cameraStream: null,
-            facingMode: 'environment',
-            flashEnabled: false,
-            detectedItems: [],
-            pantry: loadFromStorage('pantry', [
-                { id: 1, name: 'Milk', emoji: '🥛', category: 'dairy', expiresIn: 0, quantity: '1 gallon' },
-                { id: 2, name: 'Spinach', emoji: '🥬', category: 'vegetables', expiresIn: 1, quantity: '1 bag' },
-                { id: 3, name: 'Chicken Breast', emoji: '🍗', category: 'meat', expiresIn: 2, quantity: '2 lbs' },
-                { id: 4, name: 'Tomatoes', emoji: '🍅', category: 'vegetables', expiresIn: 4, quantity: '4 pieces' },
-                { id: 5, name: 'Eggs', emoji: '🥚', category: 'dairy', expiresIn: 10, quantity: '12 count' },
-                { id: 6, name: 'Bread', emoji: '🍞', category: 'grains', expiresIn: 5, quantity: '1 loaf' },
-                { id: 7, name: 'Butter', emoji: '🧈', category: 'dairy', expiresIn: 30, quantity: '1 stick' },
-                { id: 8, name: 'Apples', emoji: '🍎', category: 'fruits', expiresIn: 7, quantity: '6 pieces' },
-            ])
+            currentView: 'home', cameraActive: false, cameraStream: null, facingMode: 'environment', detectedItems: [],
+            pantry: JSON.parse(localStorage.getItem('pantry') || 'null') || [
+                {id:1,name:'Milk',emoji:'🥛',category:'dairy',expiresIn:0,quantity:'1 gallon'},
+                {id:2,name:'Spinach',emoji:'🥬',category:'vegetables',expiresIn:1,quantity:'1 bag'},
+                {id:3,name:'Chicken Breast',emoji:'🍗',category:'meat',expiresIn:2,quantity:'2 lbs'},
+                {id:4,name:'Tomatoes',emoji:'🍅',category:'vegetables',expiresIn:4,quantity:'4 pieces'},
+                {id:5,name:'Eggs',emoji:'🥚',category:'dairy',expiresIn:10,quantity:'12 count'},
+                {id:6,name:'Bread',emoji:'🍞',category:'grains',expiresIn:5,quantity:'1 loaf'},
+                {id:7,name:'Butter',emoji:'🧈',category:'dairy',expiresIn:30,quantity:'1 stick'},
+                {id:8,name:'Apples',emoji:'🍎',category:'fruits',expiresIn:7,quantity:'6 pieces'}
+            ]
         };
 
-        // ==================== UTILITY FUNCTIONS ====================
-        function loadFromStorage(key, defaultValue) {
-            try {
-                const saved = localStorage.getItem(key);
-                return saved ? JSON.parse(saved) : defaultValue;
-            } catch {
-                return defaultValue;
-            }
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-icon').textContent = type==='success'?'✓':'⚠️';
+            document.getElementById('toast-message').textContent = msg;
+            t.className = `toast active ${type}`;
+            setTimeout(()=>t.classList.remove('active'), 3000);
         }
 
-        function saveToStorage(key, value) {
-            try {
-                localStorage.setItem(key, JSON.stringify(value));
-            } catch (e) {
-                console.warn('Storage save failed:', e);
-            }
+        function getGreeting() { const h=new Date().getHours(); return h<12?'Good morning':h<17?'Good afternoon':'Good evening'; }
+        function getExpiryText(d) { return d<=0?'Exp. today!':d===1?'1 day left':`${d} days`; }
+
+        function switchView(v) {
+            state.currentView = v;
+            document.querySelectorAll('[class$="-view"]').forEach(el=>el.classList.remove('view-active'));
+            document.getElementById(`${v}-view`).classList.add('view-active');
+            document.querySelectorAll('.nav-item').forEach(n=>{ n.classList.remove('active'); if(n.dataset.view===v) n.classList.add('active'); });
+            if(v==='pantry') renderPantry();
         }
 
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            const msg = document.getElementById('toast-message');
-            
-            icon.textContent = type === 'success' ? '✓' : '⚠️';
-            msg.textContent = message;
-            toast.className = `toast active ${type}`;
-            
-            setTimeout(() => {
-                toast.classList.remove('active');
-            }, 3000);
-        }
-
-        function getGreeting() {
-            const hour = new Date().getHours();
-            if (hour < 12) return 'Good morning';
-            if (hour < 17) return 'Good afternoon';
-            return 'Good evening';
-        }
-
-        // ==================== VIEW MANAGEMENT ====================
-        function switchView(viewName) {
-            state.currentView = viewName;
-            
-            // Update views
-            document.querySelectorAll('[class$="-view"]').forEach(view => {
-                view.classList.remove('view-active');
-            });
-            document.getElementById(`${viewName}-view`).classList.add('view-active');
-            
-            // Update nav
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.view === viewName) {
-                    item.classList.add('active');
-                }
-            });
-
-            // Update content if needed
-            if (viewName === 'pantry') {
-                renderPantry();
-            }
-        }
-
-        // ==================== PANTRY RENDERING ====================
         function renderPantry() {
-            const container = document.getElementById('pantry-content');
-            const categories = {
-                dairy: { name: 'Dairy & Eggs', icon: '🥛', items: [] },
-                vegetables: { name: 'Vegetables', icon: '🥬', items: [] },
-                fruits: { name: 'Fruits', icon: '🍎', items: [] },
-                meat: { name: 'Meat & Seafood', icon: '🍖', items: [] },
-                grains: { name: 'Grains & Bread', icon: '🍞', items: [] },
-                other: { name: 'Other', icon: '📦', items: [] }
-            };
-
-            state.pantry.forEach(item => {
-                const cat = categories[item.category] || categories.other;
-                cat.items.push(item);
-            });
-
-            let html = '';
-            for (const [key, cat] of Object.entries(categories)) {
-                if (cat.items.length === 0) continue;
-
-                html += `
-                    <div class="pantry-category">
-                        <div class="pantry-category-header">
-                            <span class="pantry-category-icon">${cat.icon}</span>
-                            <span class="pantry-category-title">${cat.name}</span>
-                            <span class="pantry-category-count">${cat.items.length} items</span>
-                        </div>
-                        <div class="pantry-items-grid">
-                            ${cat.items.map(item => `
-                                <div class="pantry-item" data-id="${item.id}">
-                                    <div class="pantry-item-emoji">${item.emoji}</div>
-                                    <div class="pantry-item-name">${item.name}</div>
-                                    <div class="pantry-item-exp">${getExpiryText(item.expiresIn)}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+            const c = document.getElementById('pantry-content');
+            const cats = {dairy:{name:'Dairy & Eggs',icon:'🥛',items:[]},vegetables:{name:'Vegetables',icon:'🥬',items:[]},fruits:{name:'Fruits',icon:'🍎',items:[]},meat:{name:'Meat & Seafood',icon:'🍖',items:[]},grains:{name:'Grains & Bread',icon:'🍞',items:[]},other:{name:'Other',icon:'📦',items:[]}};
+            state.pantry.forEach(i=>{ (cats[i.category]||cats.other).items.push(i); });
+            let h='';
+            for(const[k,cat] of Object.entries(cats)) {
+                if(!cat.items.length) continue;
+                h+=`<div class="pantry-category"><div class="pantry-category-header"><span class="pantry-category-icon">${cat.icon}</span><span class="pantry-category-title">${cat.name}</span><span class="pantry-category-count">${cat.items.length} items</span></div><div class="pantry-items-grid">${cat.items.map(i=>`<div class="pantry-item" data-id="${i.id}"><div class="pantry-item-emoji">${i.emoji}</div><div class="pantry-item-name">${i.name}</div><div class="pantry-item-exp">${getExpiryText(i.expiresIn)}</div></div>`).join('')}</div></div>`;
             }
-
-            container.innerHTML = html || `
-                <div class="empty-state">
-                    <div class="empty-state-icon">🧊</div>
-                    <h3 class="empty-state-title">Pantry Empty</h3>
-                    <p class="empty-state-text">Scan items to add them to your pantry</p>
-                    <button class="empty-state-btn" onclick="openScanner()">📷 Scan Items</button>
-                </div>
-            `;
+            c.innerHTML = h || `<div class="empty-state"><div class="empty-state-icon">🧊</div><h3 class="empty-state-title">Pantry Empty</h3><p class="empty-state-text">Scan items to add them</p><button class="empty-state-btn" onclick="openScanner()">📷 Scan Items</button></div>`;
         }
 
-        function getExpiryText(days) {
-            if (days <= 0) return 'Exp. today!';
-            if (days === 1) return '1 day left';
-            return `${days} days`;
+        function updateExpiringItems() {
+            const sorted = [...state.pantry].sort((a,b)=>a.expiresIn-b.expiresIn).slice(0,4);
+            document.getElementById('expiring-items').innerHTML = sorted.map(i=>{
+                let u='ok'; if(i.expiresIn<=1)u='urgent'; else if(i.expiresIn<=3)u='soon';
+                return `<div class="expiring-item"><div class="expiring-emoji">${i.emoji}</div><p class="expiring-name">${i.name}</p><span class="expiring-days ${u}">${getExpiryText(i.expiresIn)}</span></div>`;
+            }).join('');
         }
 
-        // ==================== CAMERA SCANNER ====================
         const video = document.getElementById('camera-video');
         const canvas = document.getElementById('capture-canvas');
         const ctx = canvas.getContext('2d');
 
         async function openScanner() {
-            const modal = document.getElementById('scanner-modal');
-            modal.classList.add('active');
-            
-            // Show permission state first
+            document.getElementById('scanner-modal').classList.add('active');
             document.getElementById('permission-state').classList.remove('hidden');
             document.getElementById('error-state').classList.add('hidden');
-            document.getElementById('scanner-overlay').style.display = 'none';
-            document.getElementById('scanner-controls').style.display = 'none';
-            document.getElementById('scanner-hint').style.display = 'none';
-            
-            // Auto-request if we might already have permission
+            document.getElementById('scanner-overlay').style.display='none';
+            document.getElementById('scanner-controls').style.display='none';
+            document.getElementById('scanner-hint').style.display='none';
             requestCameraAccess();
         }
 
-        function closeScanner() {
-            const modal = document.getElementById('scanner-modal');
-            modal.classList.remove('active');
-            stopCamera();
-        }
+        function closeScanner() { document.getElementById('scanner-modal').classList.remove('active'); stopCamera(); }
 
         async function requestCameraAccess() {
             try {
-                // Check if getUserMedia is supported
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Camera not supported in this browser');
-                }
-
-                const constraints = {
-                    video: {
-                        facingMode: state.facingMode,
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    },
-                    audio: false
-                };
-
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                state.cameraStream = stream;
-                state.cameraActive = true;
-                
+                if(!navigator.mediaDevices?.getUserMedia) throw new Error('Camera not supported');
+                const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:state.facingMode,width:{ideal:1920},height:{ideal:1080}},audio:false});
+                state.cameraStream = stream; state.cameraActive = true;
                 video.srcObject = stream;
-                
-                // Wait for video to be ready
-                await new Promise((resolve) => {
-                    video.onloadedmetadata = () => {
-                        video.play().then(resolve).catch(resolve);
-                    };
-                });
-
-                // Show camera UI
+                await new Promise(r=>{ video.onloadedmetadata=()=>video.play().then(r).catch(r); });
                 document.getElementById('permission-state').classList.add('hidden');
                 document.getElementById('error-state').classList.add('hidden');
-                document.getElementById('scanner-overlay').style.display = 'block';
-                document.getElementById('scanner-controls').style.display = 'block';
-                document.getElementById('scanner-hint').style.display = 'block';
-
-            } catch (error) {
-                console.error('Camera error:', error);
-                showCameraError(error);
-            }
+                document.getElementById('scanner-overlay').style.display='block';
+                document.getElementById('scanner-controls').style.display='block';
+                document.getElementById('scanner-hint').style.display='block';
+            } catch(e) { showCameraError(e); }
         }
 
-        function showCameraError(error) {
+        function showCameraError(e) {
             document.getElementById('permission-state').classList.add('hidden');
             document.getElementById('error-state').classList.remove('hidden');
-            
-            let message = 'Unable to access camera.';
-            
-            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                message = 'Camera permission denied. Please enable camera access in your browser settings.';
-            } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                message = 'No camera found on this device.';
-            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                message = 'Camera is in use by another app. Please close other apps and try again.';
-            } else if (error.name === 'OverconstrainedError') {
-                message = 'Camera settings not supported. Trying default settings...';
-                // Try with basic constraints
-                tryBasicCamera();
-                return;
-            } else if (error.message) {
-                message = error.message;
-            }
-            
-            document.getElementById('error-message').textContent = message;
+            let m = 'Unable to access camera.';
+            if(e.name==='NotAllowedError') m='Camera permission denied. Enable in browser settings.';
+            else if(e.name==='NotFoundError') m='No camera found.';
+            else if(e.name==='OverconstrainedError') { tryBasicCamera(); return; }
+            document.getElementById('error-message').textContent = m;
         }
 
         async function tryBasicCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                state.cameraStream = stream;
-                state.cameraActive = true;
-                
-                video.srcObject = stream;
-                await video.play();
-
+                const stream = await navigator.mediaDevices.getUserMedia({video:true});
+                state.cameraStream=stream; state.cameraActive=true; video.srcObject=stream; await video.play();
                 document.getElementById('permission-state').classList.add('hidden');
                 document.getElementById('error-state').classList.add('hidden');
-                document.getElementById('scanner-overlay').style.display = 'block';
-                document.getElementById('scanner-controls').style.display = 'block';
-                document.getElementById('scanner-hint').style.display = 'block';
-            } catch (e) {
-                showCameraError(e);
-            }
+                document.getElementById('scanner-overlay').style.display='block';
+                document.getElementById('scanner-controls').style.display='block';
+                document.getElementById('scanner-hint').style.display='block';
+            } catch(e) { showCameraError(e); }
         }
 
-        function stopCamera() {
-            if (state.cameraStream) {
-                state.cameraStream.getTracks().forEach(track => track.stop());
-                state.cameraStream = null;
-            }
-            state.cameraActive = false;
-            video.srcObject = null;
+        function stopCamera() { if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;} state.cameraActive=false; video.srcObject=null; }
+        async function flipCamera() { state.facingMode=state.facingMode==='environment'?'user':'environment'; stopCamera(); await requestCameraAccess(); }
+        function captureImage() { if(!state.cameraActive)return; canvas.width=video.videoWidth; canvas.height=video.videoHeight; ctx.drawImage(video,0,0); showResults(canvas.toDataURL('image/jpeg',0.8)); }
+        function handleGallerySelect(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>showResults(ev.target.result); r.readAsDataURL(f); e.target.value=''; }
+
+        async function analyzeWithClaude(img) {
+            const b64 = img.replace(/^data:image\/\w+;base64,/,'');
+            const res = await fetch('https://api.anthropic.com/v1/messages',{
+                method:'POST',
+                headers:{'Content-Type':'application/json','x-api-key':CLAUDE_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+                body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},{type:'text',text:`Identify all food items in this image. Return ONLY a JSON array:\n[{"name":"Item","emoji":"🍎","category":"fruits|vegetables|dairy|meat|grains|beverages|condiments|snacks|frozen|other","quantity":"2 pieces","expiresIn":7}]\nIf no food, return []. No other text.`}]}]})
+            });
+            if(!res.ok) throw new Error((await res.json().catch(()=>({}))).error?.message||`API error: ${res.status}`);
+            const d = await res.json();
+            const txt = d.content.find(c=>c.type==='text')?.text?.trim()||'[]';
+            return JSON.parse(txt.replace(/```json\n?|```\n?/g,''));
         }
 
-        async function flipCamera() {
-            state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
-            stopCamera();
-            await requestCameraAccess();
-        }
-
-        function captureImage() {
-            if (!state.cameraActive) return;
-            
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            
-            const imageData = canvas.toDataURL('image/jpeg', 0.8);
-            showResults(imageData);
-        }
-
-        function handleGallerySelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                showResults(event.target.result);
-            };
-            reader.readAsDataURL(file);
-            
-            // Reset input
-            e.target.value = '';
-        }
-
-        // ==================== RESULTS MODAL ====================
-        function showResults(imageData) {
-            document.getElementById('captured-image').src = imageData;
+        function showResults(img) {
+            document.getElementById('captured-image').src=img;
             document.getElementById('results-backdrop').classList.add('active');
             document.getElementById('results-modal').classList.add('active');
-            document.getElementById('analyzing-state').style.display = 'block';
-            document.getElementById('detected-items').style.display = 'none';
-            document.getElementById('results-actions').style.display = 'none';
-            
-            // Simulate AI analysis
-            simulateAnalysis();
+            document.getElementById('analyzing-state').style.display='block';
+            document.getElementById('analyzing-state').innerHTML='<div class="analyzing-spinner"></div><p>Analyzing your ingredients...</p>';
+            document.getElementById('detected-items').style.display='none';
+            document.getElementById('results-actions').style.display='none';
+            runAnalysis(img);
         }
 
-        function closeResults() {
-            document.getElementById('results-backdrop').classList.remove('active');
-            document.getElementById('results-modal').classList.remove('active');
-        }
-
-        function simulateAnalysis() {
-            // In production, this would call Claude's vision API
-            const possibleItems = [
-                { name: 'Banana', emoji: '🍌', category: 'fruits', quantity: '3 pieces' },
-                { name: 'Orange', emoji: '🍊', category: 'fruits', quantity: '2 pieces' },
-                { name: 'Yogurt', emoji: '🥛', category: 'dairy', quantity: '1 container' },
-                { name: 'Cheese', emoji: '🧀', category: 'dairy', quantity: '1 block' },
-                { name: 'Carrots', emoji: '🥕', category: 'vegetables', quantity: '1 bunch' },
-                { name: 'Avocado', emoji: '🥑', category: 'vegetables', quantity: '2 pieces' },
-                { name: 'Salmon', emoji: '🍣', category: 'meat', quantity: '1 fillet' },
-                { name: 'Rice', emoji: '🍚', category: 'grains', quantity: '1 bag' },
-            ];
-
-            // Random selection for demo
-            const numItems = Math.floor(Math.random() * 3) + 2;
-            const shuffled = possibleItems.sort(() => 0.5 - Math.random());
-            state.detectedItems = shuffled.slice(0, numItems).map((item, i) => ({
-                ...item,
-                id: Date.now() + i,
-                expiresIn: Math.floor(Math.random() * 10) + 3,
-                selected: true
-            }));
-
-            setTimeout(() => {
-                document.getElementById('analyzing-state').style.display = 'none';
+        async function runAnalysis(img) {
+            if(!CLAUDE_API_KEY) { runDemoAnalysis(); return; }
+            try {
+                const items = await analyzeWithClaude(img);
+                if(!items.length) { document.getElementById('analyzing-state').innerHTML=`<div style="font-size:48px;margin-bottom:12px">🤔</div><h3 style="margin-bottom:8px">No Food Found</h3><p style="color:var(--text-secondary)">Try scanning an area with visible food</p>`; document.getElementById('results-actions').style.display='flex'; document.getElementById('add-to-pantry').style.display='none'; return; }
+                state.detectedItems = items.map((i,idx)=>({...i,id:Date.now()+idx,selected:true}));
+                document.getElementById('analyzing-state').style.display='none';
+                document.getElementById('add-to-pantry').style.display='block';
                 renderDetectedItems();
-                document.getElementById('detected-items').style.display = 'block';
-                document.getElementById('results-actions').style.display = 'flex';
-            }, 1500);
+                document.getElementById('detected-items').style.display='block';
+                document.getElementById('results-actions').style.display='flex';
+            } catch(e) {
+                document.getElementById('analyzing-state').innerHTML=`<div style="font-size:48px;margin-bottom:12px">⚠️</div><h3 style="margin-bottom:8px">Analysis Failed</h3><p style="color:var(--text-secondary);margin-bottom:16px">${e.message}</p><button class="scanner-state-btn" onclick="runAnalysis(document.getElementById('captured-image').src)">Try Again</button>`;
+            }
         }
+
+        function runDemoAnalysis() {
+            const items = [{name:'Banana',emoji:'🍌',category:'fruits',quantity:'3 pieces'},{name:'Orange',emoji:'🍊',category:'fruits',quantity:'2 pieces'},{name:'Yogurt',emoji:'🥛',category:'dairy',quantity:'1 container'},{name:'Cheese',emoji:'🧀',category:'dairy',quantity:'1 block'},{name:'Carrots',emoji:'🥕',category:'vegetables',quantity:'1 bunch'},{name:'Avocado',emoji:'🥑',category:'vegetables',quantity:'2 pieces'}];
+            const n = Math.floor(Math.random()*3)+2;
+            state.detectedItems = items.sort(()=>0.5-Math.random()).slice(0,n).map((i,idx)=>({...i,id:Date.now()+idx,expiresIn:Math.floor(Math.random()*10)+3,selected:true}));
+            setTimeout(()=>{
+                document.getElementById('analyzing-state').style.display='none';
+                renderDetectedItems();
+                document.getElementById('detected-items').style.display='block';
+                document.getElementById('results-actions').style.display='flex';
+            },1500);
+        }
+
+        function closeResults() { document.getElementById('results-backdrop').classList.remove('active'); document.getElementById('results-modal').classList.remove('active'); }
 
         function renderDetectedItems() {
-            const container = document.getElementById('detected-items');
-            container.innerHTML = state.detectedItems.map(item => `
-                <div class="detected-item">
-                    <span class="detected-emoji">${item.emoji}</span>
-                    <div class="detected-info">
-                        <div class="detected-name">${item.name}</div>
-                        <div class="detected-qty">${item.quantity}</div>
-                    </div>
-                    <div class="detected-check ${item.selected ? 'checked' : ''}" data-id="${item.id}">
-                        ${item.selected ? '✓' : ''}
-                    </div>
-                </div>
-            `).join('');
-
-            // Add click handlers
-            container.querySelectorAll('.detected-check').forEach(check => {
-                check.addEventListener('click', () => {
-                    const id = parseInt(check.dataset.id);
-                    const item = state.detectedItems.find(i => i.id === id);
-                    if (item) {
-                        item.selected = !item.selected;
-                        check.classList.toggle('checked');
-                        check.textContent = item.selected ? '✓' : '';
-                    }
-                });
-            });
+            const c = document.getElementById('detected-items');
+            c.innerHTML = state.detectedItems.map(i=>`<div class="detected-item"><span class="detected-emoji">${i.emoji}</span><div class="detected-info"><div class="detected-name">${i.name}</div><div class="detected-qty">${i.quantity}</div></div><div class="detected-check ${i.selected?'checked':''}" data-id="${i.id}">${i.selected?'✓':''}</div></div>`).join('');
+            c.querySelectorAll('.detected-check').forEach(ch=>ch.addEventListener('click',()=>{
+                const id=parseInt(ch.dataset.id), item=state.detectedItems.find(x=>x.id===id);
+                if(item){item.selected=!item.selected; ch.classList.toggle('checked'); ch.textContent=item.selected?'✓':'';}
+            }));
         }
 
         function addToPantry() {
-            const selected = state.detectedItems.filter(i => i.selected);
-            if (selected.length === 0) {
-                showToast('No items selected', 'error');
-                return;
-            }
-
-            selected.forEach(item => {
-                state.pantry.push({
-                    id: item.id,
-                    name: item.name,
-                    emoji: item.emoji,
-                    category: item.category,
-                    quantity: item.quantity,
-                    expiresIn: item.expiresIn
-                });
-            });
-
-            saveToStorage('pantry', state.pantry);
+            const sel = state.detectedItems.filter(i=>i.selected);
+            if(!sel.length){showToast('No items selected','error');return;}
+            sel.forEach(i=>state.pantry.push({id:i.id,name:i.name,emoji:i.emoji,category:i.category,quantity:i.quantity,expiresIn:i.expiresIn}));
+            localStorage.setItem('pantry',JSON.stringify(state.pantry));
             closeResults();
-            showToast(`${selected.length} item${selected.length > 1 ? 's' : ''} added to pantry`);
-            
-            // Update expiring items on home
+            showToast(`${sel.length} item${sel.length>1?'s':''} added to pantry`);
             updateExpiringItems();
         }
 
-        function updateExpiringItems() {
-            const sorted = [...state.pantry].sort((a, b) => a.expiresIn - b.expiresIn);
-            const top4 = sorted.slice(0, 4);
-            
-            const container = document.getElementById('expiring-items');
-            container.innerHTML = top4.map(item => {
-                let urgency = 'ok';
-                if (item.expiresIn <= 1) urgency = 'urgent';
-                else if (item.expiresIn <= 3) urgency = 'soon';
-                
-                return `
-                    <div class="expiring-item">
-                        <div class="expiring-emoji">${item.emoji}</div>
-                        <p class="expiring-name">${item.name}</p>
-                        <span class="expiring-days ${urgency}">${getExpiryText(item.expiresIn)}</span>
-                    </div>
-                `;
-            }).join('');
-        }
+        function checkApiKey() { if(!CLAUDE_API_KEY && !localStorage.getItem('mealmate_api_banner_dismissed')) document.getElementById('api-banner').classList.add('show'); }
+        function saveApiKey() { const k=document.getElementById('api-key-input').value.trim(); if(k&&k.startsWith('sk-ant-')){CLAUDE_API_KEY=k;localStorage.setItem('mealmate_api_key',k);document.getElementById('api-banner').classList.remove('show');showToast('API key saved! AI scanning enabled.');}else{showToast('Invalid API key','error');} }
+        function dismissBanner() { document.getElementById('api-banner').classList.remove('show'); localStorage.setItem('mealmate_api_banner_dismissed','true'); }
 
-        // ==================== EVENT LISTENERS ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set greeting
-            document.getElementById('greeting-time').textContent = getGreeting();
-            
-            // Navigation
-            document.querySelectorAll('.nav-item[data-view]').forEach(item => {
-                item.addEventListener('click', () => switchView(item.dataset.view));
-            });
-
-            // Quick actions
-            document.querySelectorAll('.quick-action[data-view]').forEach(item => {
-                item.addEventListener('click', () => switchView(item.dataset.view));
-            });
-
-            // View pantry link
-            document.getElementById('view-pantry').addEventListener('click', (e) => {
-                e.preventDefault();
-                switchView('pantry');
-            });
-
-            // Scanner triggers
-            document.getElementById('open-scanner').addEventListener('click', openScanner);
-            document.getElementById('open-scanner-pantry')?.addEventListener('click', openScanner);
-            document.getElementById('nav-scan').addEventListener('click', openScanner);
-
-            // Scanner controls
-            document.getElementById('close-scanner').addEventListener('click', closeScanner);
-            document.getElementById('request-camera').addEventListener('click', requestCameraAccess);
-            document.getElementById('retry-camera').addEventListener('click', requestCameraAccess);
-            document.getElementById('capture-btn').addEventListener('click', captureImage);
-            document.getElementById('flip-camera').addEventListener('click', flipCamera);
-            document.getElementById('gallery-btn').addEventListener('click', () => {
-                document.getElementById('gallery-input').click();
-            });
-            document.getElementById('gallery-input').addEventListener('change', handleGallerySelect);
-
-            // Results modal
-            document.getElementById('results-close').addEventListener('click', closeResults);
-            document.getElementById('results-backdrop').addEventListener('click', closeResults);
-            document.getElementById('scan-more').addEventListener('click', () => {
-                closeResults();
-                openScanner();
-            });
-            document.getElementById('add-to-pantry').addEventListener('click', addToPantry);
-
-            // Mode toggle
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
-            });
-
-            // Initial render
+        document.addEventListener('DOMContentLoaded',()=>{
+            document.getElementById('greeting-time').textContent=getGreeting();
+            checkApiKey();
             updateExpiringItems();
+            document.querySelectorAll('.nav-item[data-view]').forEach(n=>n.addEventListener('click',()=>switchView(n.dataset.view)));
+            document.querySelectorAll('.quick-action[data-view]').forEach(n=>n.addEventListener('click',()=>switchView(n.dataset.view)));
+            document.getElementById('view-pantry').addEventListener('click',e=>{e.preventDefault();switchView('pantry');});
+            document.getElementById('open-scanner').addEventListener('click',openScanner);
+            document.getElementById('open-scanner-pantry')?.addEventListener('click',openScanner);
+            document.getElementById('nav-scan').addEventListener('click',openScanner);
+            document.getElementById('close-scanner').addEventListener('click',closeScanner);
+            document.getElementById('request-camera').addEventListener('click',requestCameraAccess);
+            document.getElementById('retry-camera').addEventListener('click',requestCameraAccess);
+            document.getElementById('capture-btn').addEventListener('click',captureImage);
+            document.getElementById('flip-camera').addEventListener('click',flipCamera);
+            document.getElementById('gallery-btn').addEventListener('click',()=>document.getElementById('gallery-input').click());
+            document.getElementById('gallery-input').addEventListener('change',handleGallerySelect);
+            document.getElementById('results-close').addEventListener('click',closeResults);
+            document.getElementById('results-backdrop').addEventListener('click',closeResults);
+            document.getElementById('scan-more').addEventListener('click',()=>{closeResults();openScanner();});
+            document.getElementById('add-to-pantry').addEventListener('click',addToPantry);
+            document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');}));
+            document.getElementById('save-api-key').addEventListener('click',saveApiKey);
+            document.getElementById('dismiss-banner').addEventListener('click',dismissBanner);
+            document.getElementById('api-key-input').addEventListener('keypress',e=>{if(e.key==='Enter')saveApiKey();});
         });
     </script>
 </body>
