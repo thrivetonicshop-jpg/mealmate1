@@ -1,1 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f97316">
+  <meta name="description" content="BestMealMate - AI-Powered Meal Planning with Smart Pantry Tracking">
+  <title>BestMealMate - Smart Meal Planning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100vh; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    body { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%); }
+    button, a, input, select, textarea { min-height: 44px; touch-action: manipulation; }
+    .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .glass-dark { background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); }
+    .touch-active:active { transform: scale(0.97); opacity: 0.9; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    .slide-up { animation: slideUp 0.3s ease-out; }
+    .animate-pulse { animation: pulse 1.5s infinite; }
+    .animate-bounce { animation: bounce 1s infinite; }
+    .instacart-btn { background: linear-gradient(135deg, #43B02A 0%, #2D8C1F 100%); }
+    .expiring-soon { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; }
+    .expired { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 4px solid #ef4444; }
+    .fresh { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-left: 4px solid #10b981; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+    .modal-content { background: white; width: 100%; max-width: 32rem; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+    .gradient-text { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: #d1fae5; color: #059669; }
+    .badge-orange { background: #ffedd5; color: #ea580c; }
+    .badge-red { background: #fee2e2; color: #dc2626; }
+    .badge-blue { background: #dbeafe; color: #2563eb; }
+    .progress-ring { transform: rotate(-90deg); }
+    .tab-indicator { transition: transform 0.3s ease; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+    .recipe-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .recipe-card:active { transform: scale(0.98); }
+    .nutrition-bar { height: 8px; border-radius: 4px; background: #e5e7eb; overflow: hidden; }
+    .nutrition-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    
+    /* Scanner styles */
+    #scanner-modal { display: none; }
+    #scanner-modal.active { display: flex; }
+    #scanner-video { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #000; border-radius: 1rem; }
+    .detected-items { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; max-height: 300px; overflow-y: auto; }
+    .detected-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+    .detected-item.selected { background: #fff3e0; border-color: #f97316; }
+    .scan-spinner { width: 24px; height: 24px; border: 3px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .check-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .detected-item.selected .check-circle { background: #f97316; border-color: #f97316; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Scanner Modal -->
+  <div id="scanner-modal" class="fixed inset-0 bg-black/95 z-50 flex flex-col">
+    <div class="p-4 flex items-center justify-between">
+      <button onclick="closeScanner()" class="touch-active text-white text-2xl w-12 h-12 flex items-center justify-center">✕</button>
+      <span class="text-white font-semibold text-lg">Scan Food</span>
+      <button onclick="flipCamera()" class="touch-active text-white text-2xl w-12 h-12 flex items-center justify-center">🔄</button>
+    </div>
+    <div class="flex-1 flex flex-col items-center justify-center p-4">
+      <video id="scanner-video" autoplay playsinline muted></video>
+      <canvas id="scanner-canvas" class="hidden"></canvas>
+      <p class="text-white/70 text-sm mt-3">Point camera at food items</p>
+    </div>
+    <div class="p-4 pb-8">
+      <button id="scan-btn" onclick="scanFood()" class="touch-active w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-2xl text-lg shadow-lg shadow-orange-500/30">
+        📸 Scan Now
+      </button>
+      <label class="touch-active w-full mt-3 py-4 border-2 border-dashed border-white/30 text-white/70 rounded-2xl font-medium flex items-center justify-center gap-2 cursor-pointer">
+        <span>🖼️</span> Upload Photo Instead
+        <input type="file" accept="image/*" onchange="scanFromFile(event)" class="hidden">
+      </label>
+    </div>
+    <div id="scan-results" class="hidden fixed inset-0 bg-white z-60 overflow-y-auto"></div>
+  </div>
+  
+  <script>
+    (function() {
+      // ============================================
+      // CONFIGURATION
+      // ============================================
+      var SUPABASE_URL = 'https://lrtcvfpxamjxseyykenv.supabase.co';
+      var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxydGN2ZnB4YW1qeHNleXlrZW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5OTQ2ODMsImV4cCI6MjA1MDU3MDY4M30.xKQ1FgqiJcfEMwFj7GcNe-xt3JiX3GKxWV6IT0C3RtA';
+      
+      var supabase = null;
+      
+      // ============================================
+      // STATE
+      // ============================================
+      var state = {
+        loading: true,
+        user: null,
+        profile: null,
+        view: 'landing',
+        tab: 'plan',
+        error: '',
+        success: '',
+        authLoading: false,
+        
+        // Data
+        meals: {},
+        groceryList: [],
+        pantryItems: [],
+        recipes: [],
+        aiMessages: [],
+        
+        // UI State
+        instacartLoading: false,
+        showAddPantry: false,
+        showAddGrocery: false,
+        showRecipeDetail: null,
+        showSettings: false,
+        showOnboarding: false,
+        
+        // Filters
+        recipeFilter: 'all',
+        pantryFilter: 'all',
+        
+        // Daily nutrition tracking
+        dailyNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        nutritionGoals: { calories: 2000, protein: 150, carbs: 250, fat: 65 }
+      };
+      
+      // Make state globally accessible for scanner
+      window.state = state;
 
+      // ============================================
+      // UTILITY FUNCTIONS
+      // ============================================
+      function $(id) { return document.getElementById(id); }
+      
+      function render() {
+        var root = $('root');
+        if (!root) return;
+        
+        if (state.loading) {
+          root.innerHTML = renderLoading();
+          return;
+        }
+        
+        if (state.view === 'landing') root.innerHTML = renderLanding();
+        else if (state.view === 'login') root.innerHTML = renderAuth('login');
+        else if (state.view === 'signup') root.innerHTML = renderAuth('signup');
+        else if (state.view === 'onboarding') root.innerHTML = renderOnboarding();
+        else if (state.view === 'app') root.innerHTML = renderApp();
+      }
+      
+      window.render = render;
+
+      function setView(v) { state.view = v; state.error = ''; state.success = ''; render(); }
+      function setTab(t) { state.tab = t; render(); }
+      
+      function showToast(msg, type) {
+        if (type === 'error') state.error = msg;
+        else state.success = msg;
+        render();
+        setTimeout(function() { state.error = ''; state.success = ''; render(); }, 3000);
+      }
+
+      // ============================================
+      // AUTH FUNCTIONS
+      // ============================================
+      function initSupabase() {
+        var attempts = 0;
+        var maxAttempts = 15;
+        
+        function tryInit() {
+          attempts++;
+          if (window.supabase && window.supabase.createClient) {
+            try {
+              supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+              window.supabaseClient = supabase;
+              checkAuth();
+            } catch(e) {
+              console.error('Supabase init error:', e);
+              state.loading = false;
+              state.view = 'landing';
+              render();
+            }
+          } else if (attempts < maxAttempts) {
+            setTimeout(tryInit, 200);
+          } else {
+            state.loading = false;
+            state.view = 'landing';
+            render();
+          }
+        }
+        tryInit();
+      }
+
+      function checkAuth() {
+        if (!supabase) {
+          state.loading = false;
+          state.view = 'landing';
+          render();
+          return;
+        }
+        
+        supabase.auth.getUser().then(function(result) {
+          state.loading = false;
+          if (result.data && result.data.user) {
+            state.user = result.data.user;
+            state.view = 'app';
+            loadUserData();
+          } else {
+            state.view = 'landing';
+          }
+          render();
+        }).catch(function(e) {
+          console.error('Auth check error:', e);
+          state.loading = false;
+          state.view = 'landing';
+          render();
+        });
+      }
+
+      function handleSignUp() {
+        var email = $('email-input') ? $('email-input').value : '';
+        var password = $('password-input') ? $('password-input').value : '';
+        var name = $('name-input') ? $('name-input').value : '';
+        
+        if (!email || !password) {
+          showToast('Please fill in all fields', 'error');
+          return;
+        }
+        if (password.length < 6) {
+          showToast('Password must be at least 6 characters', 'error');
+          return;
+        }
+        if (!supabase) {
+          showToast('Connection error. Please refresh.', 'error');
+          return;
+        }
+        
+        state.authLoading = true;
+        render();
+        
+        supabase.auth.signUp({ 
+          email: email, 
+          password: password,
+          options: { data: { name: name } }
+        }).then(function(result) {
+          state.authLoading = false;
+          if (result.error) {
+            showToast(result.error.message, 'error');
+          } else {
+            state.user = result.data.user;
+            state.view = 'onboarding';
+            render();
+          }
+        }).catch(function(e) {
+          state.authLoading = false;
+          showToast(e.message, 'error');
+        });
+      }
+
+      function handleSignIn() {
+        var email = $('email-input') ? $('email-input').value : '';
+        var password = $('password-input') ? $('password-input').value : '';
+        
+        if (!email || !password) {
+          showToast('Please fill in all fields', 'error');
+          return;
+        }
+        if (!supabase) {
+          showToast('Connection error. Please refresh.', 'error');
+          return;
+        }
+        
+        state.authLoading = true;
+        render();
+        
+        supabase.auth.signInWithPassword({ email: email, password: password }).then(function(result) {
+          state.authLoading = false;
+          if (result.error) {
+            showToast(result.error.message, 'error');
+          } else {
+            state.user = result.data.user;
+            state.view = 'app';
+            loadUserData();
+            render();
+          }
+        }).catch(function(e) {
+          state.authLoading = false;
+          showToast(e.message, 'error');
+        });
+      }
+
+      function handleSignOut() {
+        if (supabase) {
+          supabase.auth.signOut().then(function() {
+            state.user = null;
+            state.profile = null;
+            state.pantryItems = [];
+            state.groceryList = [];
+            state.meals = {};
+            state.view = 'landing';
+            render();
+          });
+        } else {
+          state.user = null;
+          state.view = 'landing';
+          render();
+        }
+      }
+
+      // ============================================
+      // DATA LOADING
+      // ============================================
+      function loadUserData() {
+        if (!supabase || !state.user) return;
+        
+        // Load pantry items
+        supabase.from('pantry_items').select('*').eq('user_id', state.user.id).order('expiry_date', { ascending: true }).then(function(result) {
+          if (result.data) state.pantryItems = result.data;
+          render();
+        });
+        
+        // Load grocery items
+        supabase.from('grocery_items').select('*').eq('user_id', state.user.id).order('added_at', { ascending: false }).then(function(result) {
+          if (result.data) state.groceryList = result.data;
+          render();
+        });
+        
+        // Load meal plans
+        supabase.from('meal_plans').select('*').eq('user_id', state.user.id).then(function(result) {
+          if (result.data) {
+            state.meals = {};
+            result.data.forEach(function(m) {
+              state.meals[m.day + '-' + m.meal_type] = m.custom_meal || m.recipe_id;
+            });
+          }
+          render();
+        });
+        
+        // Load recipes
+        supabase.from('recipes').select('*').or('is_public.eq.true,user_id.eq.' + state.user.id).then(function(result) {
+          if (result.data) state.recipes = result.data;
+          render();
+        });
+      }
+
+      // ============================================
+      // PANTRY FUNCTIONS
+      // ============================================
+      function showPantryModal() { state.showAddPantry = true; render(); }
+      function hidePantryModal() { state.showAddPantry = false; render(); }
+
+      function addPantryItem() {
+        var name = $('pantry-name') ? $('pantry-name').value.trim() : '';
+        var qty = $('pantry-qty') ? $('pantry-qty').value || '1' : '1';
+        var exp = $('pantry-exp') ? $('pantry-exp').value : null;
+        var cat = document.querySelector('input[name="pantry-cat"]:checked');
+        
+        if (!name) {
+          showToast('Please enter an item name', 'error');
+          return;
+        }
+        
+        var newItem = {
+          user_id: state.user ? state.user.id : null,
+          name: name,
+          category: cat ? cat.value : 'fridge',
+          quantity: qty,
+          expiry_date: exp || null
+        };
+        
+        if (supabase && state.user) {
+          supabase.from('pantry_items').insert(newItem).select().then(function(result) {
+            if (result.data && result.data[0]) {
+              state.pantryItems.push(result.data[0]);
+              state.showAddPantry = false;
+              showToast('Added to pantry!', 'success');
+            } else if (result.error) {
+              showToast(result.error.message, 'error');
+            }
+          });
+        } else {
+          newItem.id = Date.now();
+          state.pantryItems.push(newItem);
+          state.showAddPantry = false;
+          render();
+        }
+      }
+
+      function removePantryItem(id) {
+        if (supabase && state.user) {
+          supabase.from('pantry_items').delete().eq('id', id).then(function() {
+            state.pantryItems = state.pantryItems.filter(function(i) { return i.id !== id; });
+            render();
+          });
+        } else {
+          state.pantryItems = state.pantryItems.filter(function(i) { return i.id !== id; });
+          render();
+        }
+      }
+
+      function movePantryToGrocery(id, name) {
+        addGroceryItemDirect(name);
+        removePantryItem(id);
+      }
+
+      function getDaysUntilExpiry(date) {
+        if (!date) return null;
+        var today = new Date(); today.setHours(0,0,0,0);
+        var exp = new Date(date); exp.setHours(0,0,0,0);
+        return Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+      }
+
+      function getExpiryStatus(date) {
+        var days = getDaysUntilExpiry(date);
+        if (days === null) return 'none';
+        if (days < 0) return 'expired';
+        if (days <= 3) return 'expiring';
+        return 'fresh';
+      }
+
+      function getExpiryText(date) {
+        var days = getDaysUntilExpiry(date);
+        if (days === null) return '';
+        if (days < 0) return 'Expired ' + Math.abs(days) + 'd ago';
+        if (days === 0) return 'Expires today!';
+        if (days === 1) return 'Tomorrow';
+        if (days <= 7) return days + ' days left';
+        return Math.ceil(days/7) + ' weeks';
+      }
+
+      function getExpiringItems() {
+        return state.pantryItems.filter(function(i) {
+          var s = getExpiryStatus(i.expiry_date);
+          return s === 'expired' || s === 'expiring';
+        });
+      }
+
+      // ============================================
+      // GROCERY FUNCTIONS  
+      // ============================================
+      function showGroceryModal() { state.showAddGrocery = true; render(); }
+      function hideGroceryModal() { state.showAddGrocery = false; render(); }
+
+      function addGroceryItem() {
+        var input = $('grocery-input');
+        if (!input || !input.value.trim()) return;
+        addGroceryItemDirect(input.value.trim());
+        input.value = '';
+      }
+
+      function addGroceryItemDirect(name) {
+        var newItem = {
+          user_id: state.user ? state.user.id : null,
+          name: name,
+          is_checked: false
+        };
+        
+        if (supabase && state.user) {
+          supabase.from('grocery_items').insert(newItem).select().then(function(result) {
+            if (result.data && result.data[0]) {
+              state.groceryList.unshift(result.data[0]);
+              render();
+            }
+          });
+        } else {
+          newItem.id = Date.now();
+          state.groceryList.unshift(newItem);
+          render();
+        }
+      }
+
+      function toggleGroceryItem(id) {
+        var item = state.groceryList.find(function(i) { return i.id === id; });
+        if (!item) return;
+        
+        item.is_checked = !item.is_checked;
+        
+        if (supabase && state.user) {
+          supabase.from('grocery_items').update({ is_checked: item.is_checked }).eq('id', id).then(function() {
+            render();
+          });
+        } else {
+          render();
+        }
+      }
+
+      function removeGroceryItem(id) {
+        if (supabase && state.user) {
+          supabase.from('grocery_items').delete().eq('id', id).then(function() {
+            state.groceryList = state.groceryList.filter(function(i) { return i.id !== id; });
+            render();
+          });
+        } else {
+          state.groceryList = state.groceryList.filter(function(i) { return i.id !== id; });
+          render();
+        }
+      }
+
+      function clearCheckedItems() {
+        var checkedIds = state.groceryList.filter(function(i) { return i.is_checked; }).map(function(i) { return i.id; });
+        
+        if (supabase && state.user && checkedIds.length > 0) {
+          supabase.from('grocery_items').delete().in('id', checkedIds).then(function() {
+            state.groceryList = state.groceryList.filter(function(i) { return !i.is_checked; });
+            render();
+          });
+        } else {
+          state.groceryList = state.groceryList.filter(function(i) { return !i.is_checked; });
+          render();
+        }
+      }
+
+      // ============================================
+      // MEAL PLAN FUNCTIONS
+      // ============================================
+      function addMeal(day, type) {
+        var meal = prompt('Enter meal for ' + day + ' ' + type + ':');
+        if (!meal) return;
+        
+        state.meals[day + '-' + type] = meal;
+        
+        if (supabase && state.user) {
+          supabase.from('meal_plans').upsert({
+            user_id: state.user.id,
+            day: day,
+            meal_type: type,
+            custom_meal: meal
+          }, { onConflict: 'user_id,day,meal_type' }).then(function() {
+            render();
+          });
+        } else {
+          render();
+        }
+      }
+
+      // ============================================
+      // AI CHEF FUNCTIONS
+      // ============================================
+      function sendAIMessage() {
+        var input = $('ai-input');
+        var msg = input ? input.value.trim() : '';
+        if (!msg) return;
+        input.value = '';
+        
+        state.aiMessages.push({ role: 'user', text: msg });
+        state.aiMessages.push({ role: 'bot', text: 'Thinking...', loading: true });
+        render();
+        
+        // Build context from pantry
+        var pantryContext = '';
+        if (state.pantryItems.length > 0) {
+          var expiring = getExpiringItems();
+          pantryContext = '\n\nUser has these items in pantry: ' + state.pantryItems.map(function(i) { return i.name; }).join(', ');
+          if (expiring.length > 0) {
+            pantryContext += '\nExpiring soon: ' + expiring.map(function(i) { return i.name; }).join(', ');
+          }
+        }
+        
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: msg + pantryContext,
+            pantry: state.pantryItems.map(function(i) { return i.name; })
+          })
+        }).then(function(res) {
+          if (res.ok) return res.json();
+          throw new Error('API error');
+        }).then(function(data) {
+          state.aiMessages.pop();
+          state.aiMessages.push({ role: 'bot', text: data.reply || data.message || 'Here\'s a suggestion for you!' });
+          render();
+        }).catch(function() {
+          var expiring = getExpiringItems();
+          var responses = [
+            "Based on what's in your pantry, try a stir-fry! Quick, healthy, and uses up vegetables.",
+            "How about a simple pasta dish? You can customize it with whatever proteins and veggies you have.",
+            "I'd suggest meal prepping on Sunday - cook grains and proteins in bulk for easy weeknight meals.",
+            "For quick meals, keep staples like eggs, rice, and canned beans. They're versatile and last long!"
+          ];
+          
+          if (expiring.length > 0) {
+            responses.unshift("You have " + expiring.map(function(i) { return i.name; }).join(', ') + " expiring soon! Let's use those first. Try making a " + (expiring[0].name.toLowerCase().includes('chicken') ? 'chicken stir-fry' : 'fresh salad or stir-fry') + ".");
+          }
+          
+          state.aiMessages.pop();
+          state.aiMessages.push({ role: 'bot', text: responses[Math.floor(Math.random() * responses.length)] });
+          render();
+        });
+      }
+
+      // ============================================
+      // INSTACART
+      // ============================================
+      function orderOnInstacart() {
+        var items = state.groceryList.filter(function(i) { return !i.is_checked; });
+        if (items.length === 0) {
+          showToast('No items to order!', 'error');
+          return;
+        }
+        
+        state.instacartLoading = true;
+        render();
+        
+        fetch('/api/instacart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            items: items.map(function(i) { return { name: i.name, quantity: 1 }; }),
+            title: 'BestMealMate List'
+          })
+        }).then(function(res) { return res.json(); })
+        .then(function(data) {
+          state.instacartLoading = false;
+          render();
+          window.open(data.url || 'https://www.instacart.com', '_blank');
+        }).catch(function() {
+          state.instacartLoading = false;
+          render();
+          window.open('https://www.instacart.com', '_blank');
+        });
+      }
+
+      // ============================================
+      // EXPOSE FUNCTIONS GLOBALLY
+      // ============================================
+      window.setView = setView;
+      window.setTab = setTab;
+      window.handleSignUp = handleSignUp;
+      window.handleSignIn = handleSignIn;
+      window.handleSignOut = handleSignOut;
+      window.showPantryModal = showPantryModal;
+      window.hidePantryModal = hidePantryModal;
+      window.addPantryItem = addPantryItem;
+      window.removePantryItem = removePantryItem;
+      window.movePantryToGrocery = movePantryToGrocery;
+      window.addGroceryItem = addGroceryItem;
+      window.toggleGroceryItem = toggleGroceryItem;
+      window.removeGroceryItem = removeGroceryItem;
+      window.clearCheckedItems = clearCheckedItems;
+      window.addMeal = addMeal;
+      window.sendAIMessage = sendAIMessage;
+      window.orderOnInstacart = orderOnInstacart;
+      window.showSettings = function() { state.showSettings = true; render(); };
+      window.hideSettings = function() { state.showSettings = false; render(); };
+      window.showRecipe = function(id) { state.showRecipeDetail = state.recipes.find(function(r) { return r.id === id; }); render(); };
+      window.hideRecipe = function() { state.showRecipeDetail = null; render(); };
+      window.setPantryFilter = function(f) { state.pantryFilter = f; render(); };
+      window.setRecipeFilter = function(f) { state.recipeFilter = f; render(); };
+      window.completeOnboarding = function() { state.view = 'app'; loadUserData(); render(); };
+
+      // ============================================
+      // RENDER FUNCTIONS
+      // ============================================
+      function renderLoading() {
+        return '<div class="min-h-screen flex items-center justify-center">' +
+          '<div class="text-center">' +
+            '<div class="text-7xl animate-bounce">🍽️</div>' +
+            '<p class="mt-4 text-gray-600 font-medium">Loading BestMealMate...</p>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderLanding() {
+        return '<div class="min-h-screen flex flex-col">' +
+          '<div class="flex-1 flex flex-col items-center justify-center p-6 text-center fade-in">' +
+            '<div class="text-8xl mb-4">🍽️</div>' +
+            '<h1 class="text-4xl font-extrabold text-gray-900 mb-2">BestMealMate</h1>' +
+            '<p class="text-lg text-gray-600 mb-2">Smart AI-Powered Meal Planning</p>' +
+            '<p class="text-sm text-gray-500 mb-8">Save time • Reduce waste • Eat better</p>' +
+            
+            '<div class="w-full max-w-xs space-y-3">' +
+              '<button onclick="setView(\'signup\')" class="touch-active w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-orange-500/30 text-lg">Get Started Free</button>' +
+              '<button onclick="setView(\'login\')" class="touch-active w-full bg-white text-gray-800 font-semibold py-4 px-6 rounded-2xl border-2 border-gray-200">Sign In</button>' +
+            '</div>' +
+          '</div>' +
+          
+          '<div class="p-6 pb-10">' +
+            '<div class="grid grid-cols-2 gap-3 max-w-sm mx-auto">' +
+              '<div class="glass rounded-2xl p-4 text-center card-shadow"><div class="text-3xl mb-2">📸</div><p class="font-semibold text-gray-900 text-sm">AI Scanner</p><p class="text-xs text-gray-500">Scan your fridge</p></div>' +
+              '<div class="glass rounded-2xl p-4 text-center card-shadow"><div class="text-3xl mb-2">🧊</div><p class="font-semibold text-gray-900 text-sm">Smart Pantry</p><p class="text-xs text-gray-500">Track expiry</p></div>' +
+              '<div class="glass rounded-2xl p-4 text-center card-shadow"><div class="text-3xl mb-2">🤖</div><p class="font-semibold text-gray-900 text-sm">AI Chef</p><p class="text-xs text-gray-500">Recipe ideas</p></div>' +
+              '<div class="glass rounded-2xl p-4 text-center card-shadow"><div class="text-3xl mb-2">🛒</div><p class="font-semibold text-gray-900 text-sm">Instacart</p><p class="text-xs text-gray-500">1-tap order</p></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderAuth(mode) {
+        var isLogin = mode === 'login';
+        return '<div class="min-h-screen flex flex-col p-6 fade-in">' +
+          '<button onclick="setView(\'landing\')" class="touch-active self-start text-gray-600 py-2 flex items-center gap-1"><span>←</span> Back</button>' +
+          '<div class="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">' +
+            '<div class="text-6xl text-center mb-4">🍽️</div>' +
+            '<h2 class="text-2xl font-bold text-center mb-6">' + (isLogin ? 'Welcome Back!' : 'Create Account') + '</h2>' +
+            
+            (state.error ? '<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl mb-4 text-sm">' + state.error + '</div>' : '') +
+            (state.success ? '<div class="bg-green-50 border border-green-200 text-green-700 p-3 rounded-xl mb-4 text-sm">' + state.success + '</div>' : '') +
+            
+            '<div class="space-y-4">' +
+              (!isLogin ? '<input type="text" id="name-input" placeholder="Your name" class="w-full p-4 rounded-xl border-2 border-gray-200 bg-white">' : '') +
+              '<input type="email" id="email-input" placeholder="Email address" class="w-full p-4 rounded-xl border-2 border-gray-200 bg-white">' +
+              '<input type="password" id="password-input" placeholder="Password" class="w-full p-4 rounded-xl border-2 border-gray-200 bg-white" onkeypress="if(event.key===\'Enter\')' + (isLogin ? 'handleSignIn()' : 'handleSignUp()') + '">' +
+              '<button onclick="' + (isLogin ? 'handleSignIn()' : 'handleSignUp()') + '" class="touch-active w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg' + (state.authLoading ? ' opacity-50' : '') + '">' + 
+                (state.authLoading ? '<span class="animate-pulse">Please wait...</span>' : (isLogin ? 'Sign In' : 'Create Account')) + 
+              '</button>' +
+            '</div>' +
+            
+            '<p class="text-center text-gray-600 mt-6">' + 
+              (isLogin ? "Don't have an account? " : "Already have an account? ") + 
+              '<button onclick="setView(\'' + (isLogin ? 'signup' : 'login') + '\')" class="touch-active text-orange-500 font-semibold">' + (isLogin ? 'Sign Up' : 'Sign In') + '</button>' +
+            '</p>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderOnboarding() {
+        return '<div class="min-h-screen flex flex-col p-6 fade-in">' +
+          '<div class="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full text-center">' +
+            '<div class="text-7xl mb-4">🎉</div>' +
+            '<h2 class="text-2xl font-bold mb-2">Welcome to BestMealMate!</h2>' +
+            '<p class="text-gray-600 mb-8">Your account is ready. Let\'s start planning smarter meals!</p>' +
+            
+            '<div class="space-y-3 text-left mb-8">' +
+              '<div class="flex items-center gap-3 p-3 bg-white rounded-xl"><span class="text-2xl">📸</span><div><p class="font-semibold">Scan your fridge</p><p class="text-sm text-gray-500">AI identifies your ingredients</p></div></div>' +
+              '<div class="flex items-center gap-3 p-3 bg-white rounded-xl"><span class="text-2xl">🤖</span><div><p class="font-semibold">Ask AI Chef</p><p class="text-sm text-gray-500">Get recipes based on what you have</p></div></div>' +
+              '<div class="flex items-center gap-3 p-3 bg-white rounded-xl"><span class="text-2xl">🛒</span><div><p class="font-semibold">Order groceries</p><p class="text-sm text-gray-500">Send list to Instacart instantly</p></div></div>' +
+            '</div>' +
+            
+            '<button onclick="completeOnboarding()" class="touch-active w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg">Let\'s Go! 🚀</button>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderApp() {
+        var content = '';
+        if (state.tab === 'plan') content = renderMealPlan();
+        else if (state.tab === 'pantry') content = renderPantry();
+        else if (state.tab === 'ai') content = renderAI();
+        else if (state.tab === 'grocery') content = renderGrocery();
+        else if (state.tab === 'recipes') content = renderRecipes();
+
+        var expiringCount = getExpiringItems().length;
+        var uncheckedGrocery = state.groceryList.filter(function(i) { return !i.is_checked; }).length;
+
+        var settingsModal = '';
+        if (state.showSettings) {
+          settingsModal = '<div class="modal-overlay" onclick="if(event.target===this)hideSettings()">' +
+            '<div class="modal-content slide-up">' +
+              '<div class="flex items-center justify-between mb-4">' +
+                '<h3 class="text-xl font-bold">Settings</h3>' +
+                '<button onclick="hideSettings()" class="touch-active text-gray-500 text-2xl p-2">×</button>' +
+              '</div>' +
+              '<div class="space-y-4">' +
+                '<div class="p-4 bg-gray-50 rounded-xl">' +
+                  '<p class="font-semibold text-gray-900">' + (state.user ? state.user.email : 'Guest') + '</p>' +
+                  '<p class="text-sm text-gray-500">Account</p>' +
+                '</div>' +
+                '<button onclick="handleSignOut()" class="touch-active w-full bg-red-50 text-red-600 font-semibold py-4 rounded-xl border border-red-200">Sign Out</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        var recipeModal = '';
+        if (state.showRecipeDetail) {
+          var r = state.showRecipeDetail;
+          var ingredients = r.ingredients || [];
+          var instructions = r.instructions || [];
+          var nutrition = r.nutrition || {};
+          
+          recipeModal = '<div class="modal-overlay" onclick="if(event.target===this)hideRecipe()">' +
+            '<div class="modal-content slide-up">' +
+              '<div class="flex items-center justify-between mb-4">' +
+                '<h3 class="text-xl font-bold">' + r.name + '</h3>' +
+                '<button onclick="hideRecipe()" class="touch-active text-gray-500 text-2xl p-2">×</button>' +
+              '</div>' +
+              
+              '<div class="flex gap-2 mb-4">' +
+                (r.prep_time ? '<span class="badge badge-blue">⏱ ' + r.prep_time + ' min prep</span>' : '') +
+                (r.cook_time ? '<span class="badge badge-orange">🍳 ' + r.cook_time + ' min cook</span>' : '') +
+              '</div>' +
+              
+              (r.description ? '<p class="text-gray-600 mb-4">' + r.description + '</p>' : '') +
+              
+              (nutrition.calories ? '<div class="grid grid-cols-4 gap-2 mb-4 text-center">' +
+                '<div class="bg-red-50 p-2 rounded-lg"><p class="font-bold text-red-600">' + nutrition.calories + '</p><p class="text-xs text-gray-500">Cal</p></div>' +
+                '<div class="bg-blue-50 p-2 rounded-lg"><p class="font-bold text-blue-600">' + nutrition.protein + 'g</p><p class="text-xs text-gray-500">Protein</p></div>' +
+                '<div class="bg-yellow-50 p-2 rounded-lg"><p class="font-bold text-yellow-600">' + nutrition.carbs + 'g</p><p class="text-xs text-gray-500">Carbs</p></div>' +
+                '<div class="bg-green-50 p-2 rounded-lg"><p class="font-bold text-green-600">' + nutrition.fat + 'g</p><p class="text-xs text-gray-500">Fat</p></div>' +
+              '</div>' : '') +
+              
+              '<h4 class="font-bold mb-2">Ingredients</h4>' +
+              '<ul class="mb-4 space-y-1">' +
+                ingredients.map(function(ing) {
+                  return '<li class="flex items-center gap-2 text-sm"><span class="w-2 h-2 bg-orange-400 rounded-full"></span>' + (ing.quantity || '') + ' ' + (ing.unit || '') + ' ' + ing.name + '</li>';
+                }).join('') +
+              '</ul>' +
+              
+              '<h4 class="font-bold mb-2">Instructions</h4>' +
+              '<ol class="space-y-2">' +
+                instructions.map(function(step, i) {
+                  return '<li class="flex gap-3 text-sm"><span class="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">' + (i+1) + '</span><span>' + step.text + '</span></li>';
+                }).join('') +
+              '</ol>' +
+            '</div>' +
+          '</div>';
+        }
+
+        return '<div class="min-h-screen flex flex-col">' +
+          '<header class="glass border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="text-2xl">🍽️</span>' +
+              '<span class="font-bold text-gray-900">BestMealMate</span>' +
+            '</div>' +
+            '<button onclick="showSettings()" class="touch-active w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">' +
+              '<span class="text-lg">⚙️</span>' +
+            '</button>' +
+          '</header>' +
+          
+          (state.error ? '<div class="fixed top-16 left-4 right-4 bg-red-500 text-white p-3 rounded-xl z-50 fade-in text-center text-sm font-medium">' + state.error + '</div>' : '') +
+          (state.success ? '<div class="fixed top-16 left-4 right-4 bg-green-500 text-white p-3 rounded-xl z-50 fade-in text-center text-sm font-medium">' + state.success + '</div>' : '') +
+          
+          '<main class="flex-1 overflow-auto pb-24">' + content + '</main>' +
+          
+          '<nav class="fixed bottom-0 left-0 right-0 glass border-t border-gray-200 px-2 py-2 z-40">' +
+            '<div class="flex justify-around max-w-lg mx-auto">' +
+              renderNavItem('plan', '📅', 'Plan', 0) +
+              renderNavItem('pantry', '🧊', 'Pantry', expiringCount) +
+              '<button onclick="openScanner()" class="touch-active flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-orange-600 bg-orange-100">' +
+                '<span class="text-lg">📸</span>' +
+                '<span class="text-xs font-medium">Scan</span>' +
+              '</button>' +
+              renderNavItem('grocery', '🛒', 'Grocery', uncheckedGrocery) +
+              renderNavItem('ai', '🤖', 'AI Chef', 0) +
+            '</div>' +
+          '</nav>' +
+          
+          settingsModal +
+          recipeModal +
+        '</div>';
+      }
+
+      function renderNavItem(tab, icon, label, badge) {
+        var isActive = state.tab === tab;
+        return '<button onclick="setTab(\'' + tab + '\')" class="touch-active flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl relative ' + (isActive ? 'text-orange-600 bg-orange-50' : 'text-gray-500') + '">' +
+          '<span class="text-lg">' + icon + '</span>' +
+          '<span class="text-xs font-medium">' + label + '</span>' +
+          (badge > 0 ? '<span class="absolute -top-1 -right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">' + badge + '</span>' : '') +
+        '</button>';
+      }
+
+      function renderMealPlan() {
+        var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        var types = ['breakfast', 'lunch', 'dinner'];
+        var icons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
+        
+        var expiring = getExpiringItems();
+        var alertHtml = '';
+        if (expiring.length > 0) {
+          alertHtml = '<div class="mx-4 mt-4 p-4 expiring-soon rounded-2xl">' +
+            '<div class="flex items-center gap-2 mb-2"><span class="text-xl">⚠️</span><span class="font-bold text-amber-800">Use these soon!</span></div>' +
+            '<div class="flex flex-wrap gap-2">' +
+              expiring.slice(0, 5).map(function(i) {
+                return '<span class="bg-white/70 px-3 py-1 rounded-full text-sm font-medium">' + i.name + '</span>';
+              }).join('') +
+            '</div>' +
+          '</div>';
+        }
+
+        var html = alertHtml + '<div class="p-4"><h2 class="text-xl font-bold text-gray-900 mb-4">This Week</h2><div class="space-y-3">';
+        
+        days.forEach(function(day) {
+          html += '<div class="glass rounded-2xl p-4 card-shadow">' +
+            '<h3 class="font-bold text-gray-900 mb-3">' + day + '</h3>' +
+            '<div class="grid grid-cols-3 gap-2">';
+          
+          types.forEach(function(type) {
+            var meal = state.meals[day + '-' + type] || '';
+            html += '<button onclick="addMeal(\'' + day + '\',\'' + type + '\')" class="touch-active p-3 bg-gray-50 hover:bg-orange-50 rounded-xl text-center transition-colors">' +
+              '<div class="text-lg mb-1">' + icons[type] + '</div>' +
+              '<div class="text-xs text-gray-500 capitalize mb-1">' + type + '</div>' +
+              '<div class="text-xs font-medium text-gray-900 truncate">' + (meal || '+ Add') + '</div>' +
+            '</button>';
+          });
+          
+          html += '</div></div>';
+        });
+        
+        html += '</div></div>';
+        return html;
+      }
+
+      function renderPantry() {
+        var categories = {
+          fridge: { icon: '🧊', name: 'Fridge', items: [] },
+          freezer: { icon: '❄️', name: 'Freezer', items: [] },
+          pantry: { icon: '🥫', name: 'Pantry', items: [] }
+        };
+
+        state.pantryItems.forEach(function(item) {
+          if (categories[item.category]) {
+            categories[item.category].items.push(item);
+          }
+        });
+
+        Object.keys(categories).forEach(function(cat) {
+          categories[cat].items.sort(function(a, b) {
+            if (!a.expiry_date) return 1;
+            if (!b.expiry_date) return -1;
+            return new Date(a.expiry_date) - new Date(b.expiry_date);
+          });
+        });
+
+        var expiring = getExpiringItems();
+
+        var html = '<div class="p-4">' +
+          '<div class="flex items-center justify-between mb-4">' +
+            '<h2 class="text-xl font-bold text-gray-900">My Pantry</h2>' +
+            '<div class="flex gap-2">' +
+              '<button onclick="openScanner()" class="touch-active bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-blue-500/30">📸 Scan</button>' +
+              '<button onclick="showPantryModal()" class="touch-active bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-orange-500/30">+ Add</button>' +
+            '</div>' +
+          '</div>';
+
+        html += '<div class="grid grid-cols-3 gap-2 mb-4">' +
+          '<div class="bg-blue-50 rounded-xl p-3 text-center"><p class="text-2xl font-bold text-blue-600">' + categories.fridge.items.length + '</p><p class="text-xs text-gray-500">Fridge</p></div>' +
+          '<div class="bg-purple-50 rounded-xl p-3 text-center"><p class="text-2xl font-bold text-purple-600">' + categories.freezer.items.length + '</p><p class="text-xs text-gray-500">Freezer</p></div>' +
+          '<div class="bg-amber-50 rounded-xl p-3 text-center"><p class="text-2xl font-bold text-amber-600">' + categories.pantry.items.length + '</p><p class="text-xs text-gray-500">Pantry</p></div>' +
+        '</div>';
+
+        if (expiring.length > 0) {
+          html += '<div class="mb-4 p-4 expiring-soon rounded-2xl">' +
+            '<div class="flex items-center gap-2 mb-1"><span>⚠️</span><span class="font-bold text-amber-800">' + expiring.length + ' item' + (expiring.length !== 1 ? 's' : '') + ' need attention</span></div>' +
+            '<p class="text-sm text-amber-700">Use these soon to reduce waste!</p>' +
+          '</div>';
+        }
+
+        if (state.showAddPantry) {
+          html += '<div class="modal-overlay" onclick="if(event.target===this)hidePantryModal()">' +
+            '<div class="modal-content slide-up">' +
+              '<div class="flex items-center justify-between mb-4">' +
+                '<h3 class="text-xl font-bold">Add Item</h3>' +
+                '<button onclick="hidePantryModal()" class="touch-active text-gray-500 text-2xl p-2">×</button>' +
+              '</div>' +
+              '<div class="space-y-4">' +
+                '<input type="text" id="pantry-name" placeholder="Item name" class="w-full p-4 rounded-xl border-2 border-gray-200 bg-white">' +
+                '<div class="grid grid-cols-3 gap-2">' +
+                  '<label class="touch-active p-3 rounded-xl border-2 text-center cursor-pointer has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 border-gray-200">' +
+                    '<input type="radio" name="pantry-cat" value="fridge" checked class="hidden">' +
+                    '<div class="text-2xl">🧊</div><div class="text-xs mt-1 font-medium">Fridge</div>' +
+                  '</label>' +
+                  '<label class="touch-active p-3 rounded-xl border-2 text-center cursor-pointer has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 border-gray-200">' +
+                    '<input type="radio" name="pantry-cat" value="freezer" class="hidden">' +
+                    '<div class="text-2xl">❄️</div><div class="text-xs mt-1 font-medium">Freezer</div>' +
+                  '</label>' +
+                  '<label class="touch-active p-3 rounded-xl border-2 text-center cursor-pointer has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 border-gray-200">' +
+                    '<input type="radio" name="pantry-cat" value="pantry" class="hidden">' +
+                    '<div class="text-2xl">🥫</div><div class="text-xs mt-1 font-medium">Pantry</div>' +
+                  '</label>' +
+                '</div>' +
+                '<div class="grid grid-cols-2 gap-3">' +
+                  '<div><label class="text-sm text-gray-600 mb-1 block font-medium">Quantity</label><input type="text" id="pantry-qty" placeholder="1" value="1" class="w-full p-3 rounded-xl border-2 border-gray-200 bg-white"></div>' +
+                  '<div><label class="text-sm text-gray-600 mb-1 block font-medium">Expires</label><input type="date" id="pantry-exp" class="w-full p-3 rounded-xl border-2 border-gray-200 bg-white"></div>' +
+                '</div>' +
+                '<button onclick="addPantryItem()" class="touch-active w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-xl font-bold shadow-lg">Add to Pantry</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        Object.keys(categories).forEach(function(catKey) {
+          var category = categories[catKey];
+          html += '<div class="mb-6">' +
+            '<h3 class="flex items-center gap-2 font-bold text-gray-900 mb-3">' +
+              '<span class="text-xl">' + category.icon + '</span>' + category.name + 
+              '<span class="text-gray-400 font-normal text-sm">(' + category.items.length + ')</span>' +
+            '</h3>';
+          
+          if (category.items.length === 0) {
+            html += '<div class="glass rounded-xl p-4 text-center text-gray-500 text-sm">Empty</div>';
+          } else {
+            html += '<div class="space-y-2">';
+            category.items.forEach(function(item) {
+              var status = getExpiryStatus(item.expiry_date);
+              var statusClass = status === 'expired' ? 'expired' : (status === 'expiring' ? 'expiring-soon' : 'fresh');
+              var expiryText = getExpiryText(item.expiry_date);
+              
+              html += '<div class="' + (item.expiry_date ? statusClass : 'glass') + ' rounded-xl p-3 flex items-center justify-between card-shadow">' +
+                '<div class="flex-1 min-w-0">' +
+                  '<div class="font-semibold text-gray-900 truncate">' + item.name + 
+                    (item.quantity && item.quantity !== '1' ? ' <span class="text-gray-500 font-normal">×' + item.quantity + '</span>' : '') + 
+                  '</div>' +
+                  (expiryText ? '<div class="text-sm ' + (status === 'expired' ? 'text-red-600' : (status === 'expiring' ? 'text-amber-600' : 'text-green-600')) + '">' + expiryText + '</div>' : '') +
+                '</div>' +
+                '<div class="flex items-center gap-1 ml-2">' +
+                  '<button onclick="movePantryToGrocery(' + item.id + ',\'' + item.name.replace(/'/g, "\\'") + '\')" class="touch-active w-9 h-9 flex items-center justify-center bg-blue-100 text-blue-600 rounded-lg">🛒</button>' +
+                  '<button onclick="removePantryItem(' + item.id + ')" class="touch-active w-9 h-9 flex items-center justify-center bg-red-100 text-red-600 rounded-lg">✕</button>' +
+                '</div>' +
+              '</div>';
+            });
+            html += '</div>';
+          }
+          html += '</div>';
+        });
+
+        html += '</div>';
+        return html;
+      }
+
+      function renderAI() {
+        var expiring = getExpiringItems();
+        var suggestions = [];
+        if (expiring.length > 0) {
+          suggestions.push('Recipes using ' + expiring[0].name);
+        }
+        suggestions.push('Quick 15-minute dinner');
+        suggestions.push('Healthy meal prep ideas');
+        suggestions.push('What can I make with chicken?');
+
+        var html = '<div class="flex flex-col" style="height:calc(100vh - 140px)">' +
+          '<div class="flex-1 p-4 overflow-y-auto">';
+        
+        if (state.aiMessages.length === 0) {
+          html += '<div class="text-center py-8">' +
+            '<div class="text-6xl mb-4">👨‍🍳</div>' +
+            '<h3 class="text-xl font-bold text-gray-900 mb-2">AI Chef</h3>' +
+            '<p class="text-gray-600 mb-6">I know what\'s in your pantry. Ask me anything!</p>' +
+            '<div class="space-y-2">';
+          
+          suggestions.forEach(function(s) {
+            html += '<button onclick="document.getElementById(\'ai-input\').value=\'' + s + '\';sendAIMessage()" class="touch-active w-full text-left p-3 bg-white rounded-xl text-sm text-gray-700 hover:bg-orange-50 transition-colors">' +
+              '<span class="text-orange-500 mr-2">💡</span>' + s +
+            '</button>';
+          });
+          
+          html += '</div></div>';
+        } else {
+          html += '<div class="space-y-3">';
+          state.aiMessages.forEach(function(msg) {
+            var isUser = msg.role === 'user';
+            html += '<div class="flex ' + (isUser ? 'justify-end' : 'justify-start') + '">' +
+              '<div class="' + (isUser ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' : 'bg-white text-gray-800 card-shadow') + ' rounded-2xl px-4 py-3 max-w-[85%]' + (msg.loading ? ' animate-pulse' : '') + '">' +
+                '<p class="text-sm whitespace-pre-wrap">' + msg.text + '</p>' +
+              '</div>' +
+            '</div>';
+          });
+          html += '</div>';
+        }
+        
+        html += '</div>' +
+          '<div class="p-4 glass border-t border-gray-200">' +
+            '<div class="flex gap-2">' +
+              '<input type="text" id="ai-input" placeholder="Ask me anything..." onkeypress="if(event.key===\'Enter\')sendAIMessage()" class="flex-1 p-3 rounded-xl border-2 border-gray-200 bg-white">' +
+              '<button onclick="sendAIMessage()" class="touch-active bg-gradient-to-r from-orange-500 to-orange-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg">Send</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+        
+        return html;
+      }
+
+      function renderGrocery() {
+        var unchecked = state.groceryList.filter(function(i) { return !i.is_checked; });
+        var checked = state.groceryList.filter(function(i) { return i.is_checked; });
+
+        var html = '<div class="p-4">' +
+          '<div class="flex items-center justify-between mb-4">' +
+            '<h2 class="text-xl font-bold text-gray-900">Grocery List</h2>' +
+            '<span class="badge badge-orange">' + unchecked.length + ' items</span>' +
+          '</div>' +
+          
+          '<div class="flex gap-2 mb-4">' +
+            '<input type="text" id="grocery-input" placeholder="Add item..." onkeypress="if(event.key===\'Enter\')addGroceryItem()" class="flex-1 p-3 rounded-xl border-2 border-gray-200 bg-white">' +
+            '<button onclick="addGroceryItem()" class="touch-active bg-gradient-to-r from-orange-500 to-orange-600 text-white px-5 py-3 rounded-xl font-bold">Add</button>' +
+          '</div>';
+
+        if (unchecked.length > 0) {
+          html += '<button onclick="orderOnInstacart()" class="touch-active w-full instacart-btn text-white font-bold py-4 px-6 rounded-xl shadow-lg mb-4 flex items-center justify-center gap-3' + (state.instacartLoading ? ' opacity-50' : '') + '">' +
+            (state.instacartLoading ? '<span class="animate-pulse">Creating list...</span>' : '<span class="text-xl">🛒</span><span>Order on Instacart</span>') +
+          '</button>';
+        }
+
+        if (state.groceryList.length === 0) {
+          html += '<div class="text-center py-10"><div class="text-5xl mb-3">🛒</div><p class="text-gray-500">Your list is empty</p><p class="text-sm text-gray-400">Add items or ask AI Chef for suggestions</p></div>';
+        } else {
+          if (unchecked.length > 0) {
+            html += '<div class="space-y-2 mb-4">';
+            unchecked.forEach(function(item) {
+              html += '<div class="flex items-center gap-3 p-3 bg-white rounded-xl card-shadow">' +
+                '<button onclick="toggleGroceryItem(' + item.id + ')" class="touch-active w-7 h-7 rounded-full border-2 border-gray-300 flex-shrink-0"></button>' +
+                '<span class="flex-1 font-medium">' + item.name + '</span>' +
+                '<button onclick="removeGroceryItem(' + item.id + ')" class="touch-active w-8 h-8 flex items-center justify-center text-red-500">✕</button>' +
+              '</div>';
+            });
+            html += '</div>';
+          }
+          
+          if (checked.length > 0) {
+            html += '<div class="flex items-center justify-between mb-2 mt-6">' +
+              '<p class="text-sm text-gray-500 font-medium">Completed (' + checked.length + ')</p>' +
+              '<button onclick="clearCheckedItems()" class="touch-active text-sm text-red-500 font-medium">Clear all</button>' +
+            '</div>' +
+            '<div class="space-y-2 opacity-60">';
+            checked.forEach(function(item) {
+              html += '<div class="flex items-center gap-3 p-3 bg-white/60 rounded-xl">' +
+                '<button onclick="toggleGroceryItem(' + item.id + ')" class="touch-active w-7 h-7 rounded-full bg-green-500 border-2 border-green-500 flex items-center justify-center flex-shrink-0"><span class="text-white text-sm">✓</span></button>' +
+                '<span class="flex-1 line-through text-gray-400">' + item.name + '</span>' +
+                '<button onclick="removeGroceryItem(' + item.id + ')" class="touch-active w-8 h-8 flex items-center justify-center text-red-400">✕</button>' +
+              '</div>';
+            });
+            html += '</div>';
+          }
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      function renderRecipes() {
+        var html = '<div class="p-4">' +
+          '<div class="flex items-center justify-between mb-4">' +
+            '<h2 class="text-xl font-bold text-gray-900">Recipes</h2>' +
+            '<span class="badge badge-blue">' + state.recipes.length + ' recipes</span>' +
+          '</div>';
+
+        var filters = ['all', 'quick', 'halal', 'vegetarian'];
+        html += '<div class="flex gap-2 mb-4 overflow-x-auto pb-2">';
+        filters.forEach(function(f) {
+          var isActive = state.recipeFilter === f;
+          html += '<button onclick="setRecipeFilter(\'' + f + '\')" class="touch-active px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ' + 
+            (isActive ? 'bg-orange-500 text-white' : 'bg-white text-gray-600') + '">' +
+            f.charAt(0).toUpperCase() + f.slice(1) +
+          '</button>';
+        });
+        html += '</div>';
+
+        var filtered = state.recipes.filter(function(r) {
+          if (state.recipeFilter === 'all') return true;
+          if (state.recipeFilter === 'quick') return (r.prep_time + r.cook_time) <= 30;
+          if (r.dietary_tags && Array.isArray(r.dietary_tags)) {
+            return r.dietary_tags.indexOf(state.recipeFilter) !== -1;
+          }
+          return false;
+        });
+
+        if (filtered.length === 0) {
+          html += '<div class="text-center py-10"><div class="text-5xl mb-3">📖</div><p class="text-gray-500">No recipes found</p></div>';
+        } else {
+          html += '<div class="grid grid-cols-2 gap-3">';
+          filtered.forEach(function(r) {
+            var tags = r.dietary_tags || [];
+            html += '<button onclick="showRecipe(' + r.id + ')" class="touch-active recipe-card bg-white rounded-2xl p-4 text-left card-shadow">' +
+              '<div class="text-3xl mb-2">' + (r.cuisine === 'Middle Eastern' ? '🥙' : (r.cuisine === 'Italian' ? '🍝' : (r.cuisine === 'Asian' ? '🍜' : (r.cuisine === 'Indian' ? '🍛' : '🍽️')))) + '</div>' +
+              '<h4 class="font-bold text-gray-900 text-sm mb-1 line-clamp-2">' + r.name + '</h4>' +
+              '<div class="flex items-center gap-2 text-xs text-gray-500">' +
+                '<span>⏱ ' + ((r.prep_time || 0) + (r.cook_time || 0)) + ' min</span>' +
+              '</div>' +
+              (tags.length > 0 ? '<div class="flex flex-wrap gap-1 mt-2">' + 
+                tags.slice(0, 2).map(function(t) { return '<span class="badge badge-green text-xs">' + t + '</span>'; }).join('') +
+              '</div>' : '') +
+            '</button>';
+          });
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Initialize app
+      initSupabase();
+    })();
+  </script>
+
+  <!-- AI Food Scanner Script -->
+  <script>
+    var scannerStream = null;
+    var detectedItems = [];
+    var selectedItems = new Set();
+
+    function openScanner() {
+      document.getElementById('scanner-modal').classList.add('active');
+      startCamera();
+    }
+
+    function closeScanner() {
+      document.getElementById('scanner-modal').classList.remove('active');
+      document.getElementById('scan-results').classList.add('hidden');
+      stopCamera();
+    }
+
+    async function startCamera() {
+      try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        document.getElementById('scanner-video').srcObject = scannerStream;
+      } catch (err) {
+        alert('Camera access denied. Please enable camera permissions.');
+        closeScanner();
+      }
+    }
+
+    function stopCamera() {
+      if (scannerStream) {
+        scannerStream.getTracks().forEach(function(track) { track.stop(); });
+        scannerStream = null;
+      }
+    }
+
+    async function flipCamera() {
+      var currentTrack = scannerStream ? scannerStream.getVideoTracks()[0] : null;
+      var currentMode = currentTrack ? currentTrack.getSettings().facingMode : 'environment';
+      stopCamera();
+      try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentMode === 'environment' ? 'user' : 'environment' }
+        });
+        document.getElementById('scanner-video').srcObject = scannerStream;
+      } catch (err) {
+        startCamera();
+      }
+    }
+
+    function captureImage() {
+      var video = document.getElementById('scanner-video');
+      var canvas = document.getElementById('scanner-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      return canvas.toDataURL('image/jpeg', 0.8);
+    }
+
+    async function scanFood() {
+      var btn = document.getElementById('scan-btn');
+      btn.innerHTML = '<div class="scan-spinner"></div>';
+      btn.disabled = true;
+
+      var image = captureImage();
+
+      try {
+        var response = await fetch('/api/scan-food', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: image })
+        });
+
+        var data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Scan failed');
+        }
+
+        if (data.ingredients && data.ingredients.length > 0) {
+          showScanResults(data.ingredients);
+        } else {
+          alert('No food items detected. Try better lighting or angle.');
+        }
+      } catch (err) {
+        alert('Scan failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '📸 Scan Now';
+        btn.disabled = false;
+      }
+    }
+
+    async function scanFromFile(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+
+      var btn = document.getElementById('scan-btn');
+      btn.innerHTML = '<div class="scan-spinner"></div>';
+      btn.disabled = true;
+
+      var reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          var response = await fetch('/api/scan-food', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: e.target.result })
+          });
+
+          var data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Scan failed');
+          }
+
+          if (data.ingredients && data.ingredients.length > 0) {
+            showScanResults(data.ingredients);
+          } else {
+            alert('No food items detected. Try a clearer image.');
+          }
+        } catch (err) {
+          alert('Scan failed: ' + err.message);
+        } finally {
+          btn.innerHTML = '📸 Scan Now';
+          btn.disabled = false;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showScanResults(items) {
+      detectedItems = items;
+      selectedItems = new Set(items.map(function(_, i) { return i; }));
+
+      var categoryIcons = {
+        produce: '🥬', dairy: '🧀', protein: '🥩', grain: '🌾',
+        condiment: '🧂', beverage: '🥤', snack: '🍿', frozen: '🧊',
+        canned: '🥫', other: '📦'
+      };
+
+      var html = '<div class="p-4">' +
+        '<div class="flex items-center justify-between mb-4">' +
+          '<button onclick="hideScanResults()" class="touch-active text-gray-600 font-medium">← Back</button>' +
+          '<span class="font-bold text-gray-900">' + items.length + ' items found</span>' +
+          '<button onclick="selectAllItems()" class="touch-active text-orange-500 font-semibold">Select All</button>' +
+        '</div>' +
+        '<div class="detected-items">';
+
+      items.forEach(function(item, i) {
+        var icon = categoryIcons[item.category] || '📦';
+        html += '<div class="detected-item selected" data-index="' + i + '" onclick="toggleItem(' + i + ')">' +
+          '<span class="text-2xl">' + icon + '</span>' +
+          '<div class="flex-1">' +
+            '<div class="font-semibold capitalize text-gray-900">' + item.name + '</div>' +
+            '<div class="text-sm text-gray-500">' + (item.quantity || '1') + ' • ' + item.category + '</div>' +
+          '</div>' +
+          '<div class="check-circle bg-orange-500 border-orange-500">' +
+            '<span class="text-white text-sm">✓</span>' +
+          '</div>' +
+        '</div>';
+      });
+
+      html += '</div>' +
+        '<button onclick="addScannedToPantry()" class="touch-active w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-xl mt-4 shadow-lg">' +
+          'Add to Pantry (' + items.length + ')' +
+        '</button>' +
+      '</div>';
+
+      document.getElementById('scan-results').innerHTML = html;
+      document.getElementById('scan-results').classList.remove('hidden');
+    }
+
+    function hideScanResults() {
+      document.getElementById('scan-results').classList.add('hidden');
+    }
+
+    function toggleItem(index) {
+      var el = document.querySelector('[data-index="' + index + '"]');
+      var checkCircle = el.querySelector('.check-circle');
+      
+      if (selectedItems.has(index)) {
+        selectedItems.delete(index);
+        el.classList.remove('selected');
+        checkCircle.innerHTML = '';
+        checkCircle.classList.remove('bg-orange-500', 'border-orange-500');
+      } else {
+        selectedItems.add(index);
+        el.classList.add('selected');
+        checkCircle.innerHTML = '<span class="text-white text-sm">✓</span>';
+        checkCircle.classList.add('bg-orange-500', 'border-orange-500');
+      }
+      updateAddButton();
+    }
+
+    function selectAllItems() {
+      selectedItems = new Set(detectedItems.map(function(_, i) { return i; }));
+      document.querySelectorAll('.detected-item').forEach(function(el) {
+        el.classList.add('selected');
+        var checkCircle = el.querySelector('.check-circle');
+        checkCircle.innerHTML = '<span class="text-white text-sm">✓</span>';
+        checkCircle.classList.add('bg-orange-500', 'border-orange-500');
+      });
+      updateAddButton();
+    }
+
+    function updateAddButton() {
+      var btn = document.querySelector('#scan-results button:last-child');
+      if (btn) btn.textContent = 'Add to Pantry (' + selectedItems.size + ')';
+    }
+
+    function addScannedToPantry() {
+      var items = detectedItems.filter(function(_, i) { return selectedItems.has(i); });
+      if (items.length === 0) {
+        alert('No items selected');
+        return;
+      }
+
+      items.forEach(function(item) {
+        var category = 'fridge';
+        if (item.category === 'frozen') category = 'freezer';
+        else if (item.category === 'canned' || item.category === 'grain' || item.category === 'condiment' || item.category === 'snack') category = 'pantry';
+
+        var newItem = {
+          id: Date.now() + Math.random(),
+          user_id: window.state.user ? window.state.user.id : null,
+          name: item.name,
+          category: category,
+          quantity: item.quantity || '1',
+          expiry_date: null
+        };
+
+        if (window.supabaseClient && window.state.user) {
+          window.supabaseClient.from('pantry_items').insert(newItem).select().then(function(result) {
+            if (result.data && result.data[0]) {
+              window.state.pantryItems.push(result.data[0]);
+              window.render();
+            }
+          });
+        } else {
+          window.state.pantryItems.push(newItem);
+        }
+      });
+
+      alert('✓ Added ' + items.length + ' item(s) to pantry!');
+      closeScanner();
+      window.setTab('pantry');
+      window.render();
+    }
+
+    window.openScanner = openScanner;
+    window.closeScanner = closeScanner;
+    window.flipCamera = flipCamera;
+    window.scanFood = scanFood;
+    window.scanFromFile = scanFromFile;
+    window.showScanResults = showScanResults;
+    window.hideScanResults = hideScanResults;
+    window.toggleItem = toggleItem;
+    window.selectAllItems = selectAllItems;
+    window.addScannedToPantry = addScannedToPantry;
+  </script>
+</body>
+</html>
